@@ -137,6 +137,11 @@ public class ThreatDetectionService {
     // IP BLOCK HELPER
     @Transactional
     public void blockIp(String ipAddress, String reason, int durationMinutes, boolean permanent) {
+        if ("127.0.0.1".equals(ipAddress) || "0:0:0:0:0:0:0:1".equals(ipAddress) || "::1".equals(ipAddress) || "localhost".equalsIgnoreCase(ipAddress)) {
+            log.info("[THREAT DETECTION] Skipping IP block for loopback/localhost: {}", ipAddress);
+            return;
+        }
+
         LocalDateTime blockedUntil = permanent ? null : LocalDateTime.now().plusMinutes(durationMinutes);
         IpBlacklist entry = ipBlacklistRepository.findByIpAddress(ipAddress).orElse(new IpBlacklist());
         entry.setIpAddress(ipAddress);

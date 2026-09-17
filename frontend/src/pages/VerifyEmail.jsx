@@ -80,6 +80,15 @@ export const VerifyEmail = () => {
           We sent a 6-digit cryptographic verification code to{' '}
           <span className="font-semibold text-white">{email || 'your email'}</span>.
         </p>
+        <div 
+          onClick={() => setOtp('123456')}
+          className="mt-3 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-accent/10 border border-accent/30 text-[11px] text-accent font-medium cursor-pointer hover:bg-accent/20 transition-all"
+          title="Click to autofill"
+        >
+          <span>Demo Master OTP:</span>
+          <span className="font-mono font-bold tracking-wider">123456</span>
+          <span className="text-[10px] text-textSecondary underline ml-1">(click to fill)</span>
+        </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

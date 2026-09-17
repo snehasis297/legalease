@@ -117,6 +117,10 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private boolean isIpBlocked(String ip) {
+        if ("127.0.0.1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip) || "::1".equals(ip) || "localhost".equalsIgnoreCase(ip)) {
+            return false;
+        }
+
         try {
             if (redisTemplate != null) {
                 Boolean isMember = redisTemplate.opsForSet().isMember("blacklisted_ips", ip);

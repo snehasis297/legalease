@@ -23,6 +23,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final LawyerProfileRepository lawyerProfileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.legalease.repository.IpBlacklistRepository ipBlacklistRepository;
 
     @Value("${file.upload-dir:uploads/}")
     private String uploadDir;
@@ -35,10 +36,12 @@ public class DataInitializer implements CommandLineRunner {
 
     public DataInitializer(UserRepository userRepository,
                            LawyerProfileRepository lawyerProfileRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           com.legalease.repository.IpBlacklistRepository ipBlacklistRepository) {
         this.userRepository = userRepository;
         this.lawyerProfileRepository = lawyerProfileRepository;
         this.passwordEncoder = passwordEncoder;
+        this.ipBlacklistRepository = ipBlacklistRepository;
     }
 
     @Override
@@ -47,6 +50,14 @@ public class DataInitializer implements CommandLineRunner {
         createDirectory(uploadDir);
         createDirectory(verifyDocsDir);
         createDirectory(appealDocsDir);
+
+        // Ensure localhost is never blocked
+        try {
+            ipBlacklistRepository.deleteByIpAddress("127.0.0.1");
+            ipBlacklistRepository.deleteByIpAddress("0:0:0:0:0:0:0:1");
+            ipBlacklistRepository.deleteByIpAddress("localhost");
+        } catch (Exception ignored) {
+        }
 
         // 1. Seed Default Admin
         if (!userRepository.existsByEmail("admin@legalease.com")) {

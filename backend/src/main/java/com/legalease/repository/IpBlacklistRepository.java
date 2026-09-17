@@ -18,6 +18,8 @@ public interface IpBlacklistRepository extends JpaRepository<IpBlacklist, Long> 
 
     boolean existsByIpAddress(String ipAddress);
 
+    void deleteByIpAddress(String ipAddress);
+
     @Query("SELECT b FROM IpBlacklist b WHERE b.ipAddress = :ip AND (b.isPermanent = true OR b.blockedUntil > :now)")
     Optional<IpBlacklist> findActiveBlock(@Param("ip") String ip, @Param("now") LocalDateTime now);
 
