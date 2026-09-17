@@ -4,21 +4,22 @@ import { tokenHelper } from '../utils/tokenHelper';
 export const chatService = {
   createSession: (documentId) => api.post(`/chat/session/${documentId}`),
   getSessions: () => api.get('/chat/sessions'),
-  getHistory: (sessionId) => api.get(`/chat/history/${sessionId}`),
+  getHistory: (documentId) => api.get(`/chat/${documentId}/history`),
+  getChatHistory: (documentId) => api.get(`/chat/${documentId}/history`),
   deleteSession: (id) => api.delete(`/chat/session/${id}`),
 
   // SSE Streaming helper via fetch
-  streamMessage: async (sessionId, message, onToken, onComplete, onError) => {
+  streamMessage: async (documentId, message, onChunk, onError, onDone) => {
     try {
       const token = tokenHelper.getAccessToken();
-      const response = await fetch('/api/chat/message', {
+      const response = await fetch(`/api/chat/${documentId}/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
           'Authorization': token ? `Bearer ${token}` : '',
         },
-        body: JSON.stringify({ sessionId, message }),
+        body: JSON.stringify({ message }),
       });
 
       if (!response.ok) {
@@ -40,17 +41,20 @@ export const chatService = {
           if (line.startsWith('data:')) {
             const data = line.slice(5).trim();
             if (data === '[DONE]') {
-              if (onComplete) onComplete();
+              if (onDone) onDone();
               return;
             } else if (data) {
-              if (onToken) onToken(data);
+              if (onChunk) onChunk(data);
             }
           }
         }
       }
-      if (onComplete) onComplete();
+      if (onDone) onDone();
     } catch (err) {
       if (onError) onError(err);
+      else throw err;
     }
   },
 };
+
+export default chatService;

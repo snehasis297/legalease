@@ -14,8 +14,15 @@ export const documentService = {
       },
     });
   },
+  uploadDocument: (formData) => api.post('/documents/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
   getDocuments: (page = 0, size = 10) => api.get(`/documents?page=${page}&size=${size}`),
+  getMyDocuments: (params = { page: 0, size: 10 }) => api.get('/documents', { params }),
   getDocument: (id) => api.get(`/documents/${id}`),
   deleteDocument: (id) => api.delete(`/documents/${id}`),
+  downloadDocument: (id) => api.get(`/documents/${id}/download`, { responseType: 'blob' }),
   downloadUrl: (id) => `/api/documents/${id}/download`,
 };
+
+export default documentService;

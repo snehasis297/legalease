@@ -7,6 +7,8 @@ export const formatBytes = (bytes, decimals = 2) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
+export const formatFileSize = formatBytes;
+
 export const formatDate = (dateString) => {
   if (!dateString) return '—';
   try {
@@ -21,4 +23,10 @@ export const formatDate = (dateString) => {
   } catch (e) {
     return dateString;
   }
+};
+
+export default {
+  formatBytes,
+  formatFileSize,
+  formatDate,
 };

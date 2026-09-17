@@ -13,4 +13,9 @@ export const authService = {
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   resetPassword: (data) => api.post('/auth/reset-password', data),
   resendOtp: (email) => api.post('/auth/resend-otp', { email }),
+  changePassword: (data) => api.post('/auth/change-password', data),
+  getTwoFactorSetup: () => api.get('/auth/2fa/setup'),
+  enableTwoFactor: (code) => api.post('/auth/2fa/enable', { code }),
 };
+
+export default authService;
