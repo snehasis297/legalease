@@ -18,7 +18,7 @@ const mockLogs = [
 export const HackerTerminal = () => {
   const [logs, setLogs] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const terminalEndRef = useRef(null);
+  const terminalContainerRef = useRef(null);
 
   useEffect(() => {
     if (currentIndex < mockLogs.length) {
@@ -37,8 +37,11 @@ export const HackerTerminal = () => {
     }
   }, [currentIndex]);
 
+  // Internal-only container scroll: does NOT scroll the browser window
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (terminalContainerRef.current) {
+      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
+    }
   }, [logs]);
 
   return (
@@ -58,7 +61,10 @@ export const HackerTerminal = () => {
       </div>
 
       {/* Terminal Logs */}
-      <div className="p-5 h-64 overflow-y-auto space-y-2 text-[#00FF88] scrollbar-thin">
+      <div 
+        ref={terminalContainerRef}
+        className="p-5 h-64 overflow-y-auto space-y-2 text-[#00FF88] scrollbar-thin"
+      >
         {logs.map((line, idx) => {
           const isBlocked = line.includes('[BLOCKED]') || line.includes('[PERMANENT_BLACKLIST]');
           const isFlagged = line.includes('[FLAGGED]') || line.includes('[FORCED_LOGOUT]');
@@ -75,7 +81,6 @@ export const HackerTerminal = () => {
           <span className="text-gray-500">&gt;</span>
           <span className="inline-block w-2.5 h-4 bg-[#00FF88] cursor-blink"></span>
         </div>
-        <div ref={terminalEndRef} />
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
   const [inputText, setInputText] = useState('');
   const [streamingContent, setStreamingContent] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const messagesEndRef = useRef(null);
+  const chatMessagesContainerRef = useRef(null);
 
   const suggestedQuestions = [
     'What are the highest risk clauses?',
@@ -39,7 +39,9 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
   }, [documentId, isOpen]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatMessagesContainerRef.current) {
+      chatMessagesContainerRef.current.scrollTop = chatMessagesContainerRef.current.scrollHeight;
+    }
   }, [messages, streamingContent]);
 
   const handleSendMessage = async (textToSend) => {
@@ -122,7 +124,7 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
       )}
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={chatMessagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center text-xs text-textSecondary space-y-2 p-6">
             <Sparkles className="w-8 h-8 text-accent/60 mb-2" />
@@ -151,8 +153,6 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input bar */}
