@@ -41,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
                      CustomUserDetailsService userDetailsService,
                      UserRepository userRepository,
                      IpBlacklistRepository ipBlacklistRepository,
-                     StringRedisTemplate redisTemplate,
+                     @org.springframework.beans.factory.annotation.Autowired(required = false) StringRedisTemplate redisTemplate,
                      DeviceFingerprintUtil deviceFingerprintUtil) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;

@@ -31,7 +31,7 @@ public class ThreatDetectionService {
     public ThreatDetectionService(SuspiciousActivityRepository suspiciousActivityRepository,
                                   IpBlacklistRepository ipBlacklistRepository,
                                   UserRepository userRepository,
-                                  StringRedisTemplate redisTemplate,
+                                  @org.springframework.beans.factory.annotation.Autowired(required = false) StringRedisTemplate redisTemplate,
                                   EmailService emailService) {
         this.suspiciousActivityRepository = suspiciousActivityRepository;
         this.ipBlacklistRepository = ipBlacklistRepository;

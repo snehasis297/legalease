@@ -48,7 +48,7 @@ public class AccountSafetyService {
                                 RefreshTokenRepository refreshTokenRepository,
                                 AccountAppealRepository accountAppealRepository,
                                 EmailService emailService,
-                                StringRedisTemplate redisTemplate,
+                                @org.springframework.beans.factory.annotation.Autowired(required = false) StringRedisTemplate redisTemplate,
                                 AesEncryptionUtil aesEncryptionUtil,
                                 AuditLogUtil auditLogUtil) {
         this.userRepository = userRepository;

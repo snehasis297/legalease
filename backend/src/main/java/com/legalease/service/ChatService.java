@@ -113,13 +113,14 @@ public class ChatService {
         DocumentAnalysis analysis = documentAnalysisRepository.findByDocumentId(doc.getId()).orElse(null);
         String summary = analysis != null ? analysis.getFullSummary() : "No summary available.";
 
-        String docText = "";
+        String tempDocText = "";
         try {
             byte[] cipherBytes = Files.readAllBytes(new File(doc.getFilePath()).toPath());
             byte[] plain = aesEncryptionUtil.decryptFileGcm(cipherBytes, doc.getEncryptionIv());
-            docText = new String(plain);
+            tempDocText = new String(plain);
         } catch (Exception ignored) {
         }
+        final String docText = tempDocText;
 
         List<ChatMessage> last20 = chatMessageRepository.findTop20BySessionIdOrderByTimestampDesc(sessionId);
         Collections.reverse(last20);

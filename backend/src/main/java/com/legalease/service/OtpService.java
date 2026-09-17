@@ -33,7 +33,7 @@ public class OtpService {
     public OtpService(EmailVerificationRepository emailVerificationRepository,
                       UserRepository userRepository,
                       EmailService emailService,
-                      StringRedisTemplate redisTemplate) {
+                      @org.springframework.beans.factory.annotation.Autowired(required = false) StringRedisTemplate redisTemplate) {
         this.emailVerificationRepository = emailVerificationRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;

@@ -20,7 +20,7 @@ public class RateLimitService {
     // In-memory fallback if Redis is not reachable
     private final Map<String, SlidingWindowInMemory> memoryCache = new ConcurrentHashMap<>();
 
-    public RateLimitService(StringRedisTemplate redisTemplate) {
+    public RateLimitService(@org.springframework.beans.factory.annotation.Autowired(required = false) StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
