@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, ShieldAlert, LogOut, User, LayoutDashboard, Menu, X } from 'lucide-react';
+import { 
+  Shield, 
+  LogOut, 
+  LayoutDashboard, 
+  Menu, 
+  X, 
+  Sun, 
+  Moon,
+  Sparkles
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { isDark, toggleTheme, activeSection, setActiveSection, sectionThemeColors } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -24,6 +35,20 @@ export const Navbar = () => {
     return '/client/dashboard';
   };
 
+  const navItems = [
+    { id: 'how-it-works', label: 'How It Works', color: '#6366F1' },
+    { id: 'live-demo', label: 'AI Redline', color: '#10B981' },
+    { id: 'security', label: 'Security', color: '#F43F5E' },
+    { id: 'roles', label: 'Personas', color: '#F59E0B' },
+    { id: 'stats', label: 'Telemetry', color: '#06B6D4' },
+  ];
+
+  const handleNavClick = (sectionId, e) => {
+    e.preventDefault();
+    setActiveSection(sectionId);
+    setMobileMenuOpen(false);
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
@@ -37,45 +62,75 @@ export const Navbar = () => {
             <Shield className="w-5 h-5 text-accent group-hover:scale-110 transition-transform" />
           </div>
           <div>
-            <span className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-100 to-accent">
+            <span className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-100 to-accent dark:from-white dark:via-gray-100 dark:to-accent text-slate-900">
               LegalEase
             </span>
-            <span className="hidden sm:inline-block ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/30 text-accent border border-primary/50 font-medium">
+            <span className="hidden sm:inline-block ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/20 text-indigo-400 border border-indigo-500/30 font-medium">
               AI Security
             </span>
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-sm font-medium text-textSecondary hover:text-white transition-colors">
-            Features
-          </a>
-          <a href="#how-it-works" className="text-sm font-medium text-textSecondary hover:text-white transition-colors">
-            How It Works
-          </a>
-          <a href="#security" className="text-sm font-medium text-textSecondary hover:text-white transition-colors">
-            Security
-          </a>
-          <a href="#roles" className="text-sm font-medium text-textSecondary hover:text-white transition-colors">
-            Roles
-          </a>
+        {/* Desktop Navigation with Dynamic Situational Section Highlighting */}
+        <div className="hidden md:flex items-center space-x-1.5 bg-slate-950/40 dark:bg-slate-950/50 p-1.5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
+          {navItems.map((item) => {
+            const isActive = activeSection === item.id;
+            return (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => handleNavClick(item.id, e)}
+                style={{
+                  color: isActive ? item.color : undefined,
+                  borderColor: isActive ? `${item.color}50` : 'transparent',
+                  backgroundColor: isActive ? `${item.color}15` : 'transparent',
+                }}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-200 border flex items-center gap-1.5 ${
+                  isActive
+                    ? 'shadow-sm'
+                    : 'text-slate-400 hover:text-white dark:hover:text-white hover:bg-slate-800/40'
+                }`}
+              >
+                {isActive && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full animate-ping"
+                    style={{ backgroundColor: item.color }}
+                  />
+                )}
+                {item.label}
+              </a>
+            );
+          })}
         </div>
 
-        {/* Right CTA Actions */}
-        <div className="hidden md:flex items-center space-x-4">
+        {/* Right CTA Actions + Theme Toggle */}
+        <div className="hidden md:flex items-center space-x-3">
+          {/* Dark / Light Mode Button */}
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl border border-slate-700/80 bg-slate-900/60 dark:bg-slate-900/60 hover:bg-slate-800 text-amber-400 dark:text-amber-300 transition-all hover:scale-105 flex items-center justify-center shadow-md"
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle Theme Mode"
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4 text-amber-300 animate-spin-slow" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-500" />
+            )}
+          </button>
+
           {isAuthenticated ? (
             <>
               <button
                 onClick={() => navigate(getDashboardPath())}
-                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-primary/30 border border-primary text-sm font-medium text-white hover:bg-primary/50 transition-all shadow-glow-purple"
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-primary/30 border border-primary text-xs font-medium text-white hover:bg-primary/50 transition-all shadow-glow-purple"
               >
-                <LayoutDashboard className="w-4 h-4 text-accent" />
+                <LayoutDashboard className="w-3.5 h-3.5 text-accent" />
                 <span>Dashboard</span>
               </button>
               <button
                 onClick={logout}
-                className="p-2 rounded-xl border border-white/10 text-textSecondary hover:text-danger hover:border-danger/40 transition-colors"
+                className="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 transition-colors"
                 title="Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -85,13 +140,13 @@ export const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="text-sm font-medium text-textSecondary hover:text-white transition-colors px-3 py-2"
+                className="text-xs font-medium text-slate-300 hover:text-white transition-colors px-3 py-2"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-light text-sm font-medium text-white shadow-glow-purple transition-all hover:scale-105"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white shadow-lg shadow-indigo-600/25 transition-all hover:scale-105"
               >
                 Get Started
               </Link>
@@ -99,11 +154,18 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile menu button */}
-        <div className="md:hidden flex items-center">
+        {/* Mobile menu and Theme toggle */}
+        <div className="md:hidden flex items-center space-x-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl border border-slate-800 bg-slate-900 text-amber-400"
+            title="Toggle Theme"
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-indigo-400" />}
+          </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-textSecondary hover:text-white focus:outline-none"
+            className="p-2 rounded-lg text-slate-400 hover:text-white focus:outline-none"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -112,63 +174,45 @@ export const Navbar = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden glass border-b border-white/10 px-4 pt-2 pb-6 space-y-3">
-          <a
-            href="#features"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-textSecondary hover:text-white py-2"
-          >
-            Features
-          </a>
-          <a
-            href="#how-it-works"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-textSecondary hover:text-white py-2"
-          >
-            How It Works
-          </a>
-          <a
-            href="#security"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-textSecondary hover:text-white py-2"
-          >
-            Security
-          </a>
-          <div className="pt-4 border-t border-white/10 flex flex-col space-y-2">
+        <div className="md:hidden glass border-b border-slate-800 px-4 pt-3 pb-6 space-y-2">
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => handleNavClick(item.id, e)}
+              className={`block text-xs font-medium py-2 px-3 rounded-lg transition ${
+                activeSection === item.id
+                  ? 'bg-slate-800 text-white font-semibold'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {item.label}
+            </a>
+          ))}
+          <div className="pt-3 border-t border-slate-800 flex flex-col space-y-2">
             {isAuthenticated ? (
-              <>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigate(getDashboardPath());
-                  }}
-                  className="w-full text-center py-2.5 rounded-lg bg-primary text-sm font-medium text-white"
-                >
-                  Go to Dashboard
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    logout();
-                  }}
-                  className="w-full text-center py-2 text-sm font-medium text-danger"
-                >
-                  Sign Out
-                </button>
-              </>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate(getDashboardPath());
+                }}
+                className="w-full text-center py-2.5 rounded-lg bg-indigo-600 text-xs font-medium text-white"
+              >
+                Go to Dashboard
+              </button>
             ) : (
               <>
                 <Link
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 text-sm font-medium text-white border border-white/10 rounded-lg"
+                  className="w-full text-center py-2 text-xs font-medium text-white border border-slate-800 rounded-lg"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-lg bg-primary text-sm font-medium text-white shadow-glow-purple"
+                  className="w-full text-center py-2.5 rounded-lg bg-indigo-600 text-xs font-medium text-white shadow-lg shadow-indigo-600/20"
                 >
                   Get Started
                 </Link>

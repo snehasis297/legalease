@@ -1,18 +1,39 @@
 import React from 'react';
-import { ArrowRight, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
 export const CtaSection = () => {
+  const { activeSection, setActiveSection } = useTheme();
+  const isActive = activeSection === 'cta';
+
   return (
-    <section className="py-24 relative overflow-hidden bg-[#0A0A0F]">
+    <section 
+      id="cta"
+      onClick={() => setActiveSection('cta')}
+      className={`py-24 relative overflow-hidden transition-all duration-500 cursor-pointer ${
+        isActive 
+          ? 'bg-gradient-to-b from-purple-950/50 via-[#0A0A0F] to-[#0A0A0F] ring-2 ring-purple-500/40 shadow-[0_0_80px_rgba(168,85,247,0.2)]'
+          : 'bg-[#0A0A0F]'
+      }`}
+    >
       {/* Background glow orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/25 rounded-full blur-3xl pointer-events-none" />
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500 ${
+        isActive ? 'bg-purple-500/35' : 'bg-primary/25'
+      }`} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-success/10 border border-success/30 text-success text-xs font-mono">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Production-Ready Enterprise System</span>
-        </div>
+        {isActive ? (
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-mono shadow-lg shadow-purple-500/20 animate-pulse">
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <span>ACTIVE INSPECTION: ENTERPRISE LAUNCHPAD</span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-success/10 border border-success/30 text-success text-xs font-mono">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Production-Ready Enterprise System</span>
+          </div>
+        )}
 
         <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
           Never Sign an Unchecked Contract Again
