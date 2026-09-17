@@ -1,0 +1,435 @@
+{
+  "info": {
+    "name": "LegalEase API Collection",
+    "description": "Comprehensive Postman collection for LegalEase Intelligent Contract Review & Risk Assessment System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication & Security",
+      "item": [
+        {
+          "name": "Register Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jane Doe\",\n  \"email\": \"jane.doe@example.com\",\n  \"password\": \"P@ssword123!\",\n  \"phoneNumber\": \"+15551234567\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"governmentIdNumber\": \"AB123456C\",\n  \"role\": \"CLIENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login (Client / Lawyer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.collectionVariables.set('jwtToken', jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane.doe@example.com\",\n  \"password\": \"P@ssword123!\",\n  \"deviceFingerprint\": \"browser-fingerprint-sample-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Admin Login with TOTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.collectionVariables.set('jwtToken', jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@legalease.com\",\n  \"password\": \"Admin@123456\",\n  \"totpCode\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/admin-login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "admin-login"]
+            }
+          }
+        },
+        {
+          "name": "Verify Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane.doe@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email"]
+            }
+          }
+        },
+        {
+          "name": "Verify Phone OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane.doe@example.com\",\n  \"otp\": \"654321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-phone",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-phone"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"refresh-token-uuid-here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh-token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Contracts & Risk Assessment",
+      "item": [
+        {
+          "name": "Upload Contract (Encrypted AES-256-GCM)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "title", "value": "Master Services Agreement", "type": "text" },
+                { "key": "contractType", "value": "SERVICE_AGREEMENT", "type": "text" },
+                { "key": "notes", "value": "Quarterly renegotiation terms", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "upload"]
+            }
+          }
+        },
+        {
+          "name": "Get User Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trigger AI Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analysis/1/trigger",
+              "host": ["{{baseUrl}}"],
+              "path": ["analysis", "1", "trigger"]
+            }
+          }
+        },
+        {
+          "name": "Get Document Analysis & Clauses",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analysis/document/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["analysis", "document", "1"]
+            }
+          }
+        },
+        {
+          "name": "Download Encrypted Contract File",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/1/download",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "1", "download"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Interactive AI Assistant",
+      "item": [
+        {
+          "name": "Ask Question (Stream SSE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What are the unilateral termination notice requirements in this contract?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat/1/stream",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "1", "stream"]
+            }
+          }
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chat/1/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "1", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Counsel & Lawyer Portal",
+      "item": [
+        {
+          "name": "Submit Bar Council KYC",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "barNumber", "value": "BAR/2019/7821", "type": "text" },
+                { "key": "stateBar", "value": "Bar Council of California", "type": "text" },
+                { "key": "experienceYears", "value": "8", "type": "text" },
+                { "key": "practiceArea", "value": "Corporate & Commercial Law", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lawyer/kyc",
+              "host": ["{{baseUrl}}"],
+              "path": ["lawyer", "kyc"]
+            }
+          }
+        },
+        {
+          "name": "Get Bar KYC Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lawyer/kyc/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["lawyer", "kyc", "status"]
+            }
+          }
+        },
+        {
+          "name": "Submit Legal Review Opinion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Reviewed sections 4 and 12. Uncapped indemnity clause must be amended to 1x contract value.\",\n  \"status\": \"REVIEWED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lawyer/reviews/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["lawyer", "reviews", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Root Security Administration",
+      "item": [
+        {
+          "name": "Dashboard Telemetry",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "dashboard", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get User Directory",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Disable User (Issue 30-day Appeal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"High-frequency API breach and suspicious automated access\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/2/disable",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "2", "disable"]
+            }
+          }
+        },
+        {
+          "name": "Add IP to Blacklist",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ipAddress\": \"198.51.100.45\",\n  \"reason\": \"Credential brute-forcing detected on auth endpoint\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/blacklist",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "blacklist"]
+            }
+          }
+        },
+        {
+          "name": "Approve Bar Council Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/verifications/1/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "verifications", "1", "approve"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

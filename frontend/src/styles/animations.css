@@ -1,0 +1,32 @@
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 51, 85, 0.4);
+    border-color: rgba(255, 51, 85, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 51, 85, 0.8);
+    border-color: rgba(255, 51, 85, 1);
+  }
+}
+
+.high-risk-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: cursorBlink 1s infinite;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+.scan-animation {
+  animation: scanline 4s linear infinite;
+}

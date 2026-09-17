@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Age verification required for your LegalEase account</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A0A0F; color: #FFFFFF; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #1A1A2E; border: 1px solid #534AB7; border-radius: 12px; padding: 32px; }
+    .logo { font-size: 24px; font-weight: bold; color: #00D4FF; margin-bottom: 24px; }
+    .badge { display: inline-block; background: rgba(255, 170, 0, 0.2); color: #FFAA00; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+    h2 { color: #FFFFFF; margin-top: 0; }
+    p { color: #A0A0B0; line-height: 1.6; }
+    .btn { display: inline-block; background: #534AB7; color: #FFFFFF !important; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .requirements { background: rgba(83, 74, 183, 0.1); border: 1px solid rgba(83, 74, 183, 0.3); border-radius: 8px; padding: 16px; margin: 20px 0; }
+    .requirements ul { margin: 8px 0; padding-left: 20px; color: #A0A0B0; }
+    .footer { margin-top: 32px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 16px; font-size: 12px; color: #707080; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">LegalEase</div>
+    <div class="badge">Compliance Notice</div>
+    <h2>Age verification required for your LegalEase account</h2>
+    <p>Hello [[${fullName}]],</p>
+    <p>Our team found signals that your account may have been accessed by someone under 18. This breaks our Terms of Service, so we have paused your access.</p>
+    
+    <p>If you are 18 or older, please verify your age through our secure portal:</p>
+    <p><a href="[[${appealLink}]]" class="btn" target="_blank">Verify My Age</a></p>
+
+    <div class="requirements">
+      <strong style="color: #00D4FF;">You will need:</strong>
+      <ul>
+        <li>Government ID clearly showing your date of birth</li>
+        <li>A selfie holding your ID</li>
+      </ul>
+      <small style="color: #A0A0B0;">This verification link expires in 30 days.</small>
+    </div>
+
+    <div class="footer">
+      <p>Contact: security@legalease.com</p>
+      <p>The LegalEase Security Team &bull; Intelligent Contract Review &amp; Risk Assessment System</p>
+    </div>
+  </div>
+</body>
+</html>
