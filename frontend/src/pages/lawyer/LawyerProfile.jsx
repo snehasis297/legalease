@@ -10,8 +10,7 @@ import {
   Award,
   ShieldCheck
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import lawyerService from '../../services/lawyerService';
 
@@ -58,13 +57,8 @@ export default function LawyerProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="lawyer" title="Profile & Credentials">
+      <div className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Counsel Profile & Credentials</h1>
             <p className="text-xs text-slate-400 mt-1">
@@ -170,8 +164,7 @@ export default function LawyerProfile() {
               </form>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

@@ -9,8 +9,7 @@ import {
   Lock,
   ArrowLeft
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import UploadZone from '../../components/document/UploadZone';
 import AnalyzingOverlay from '../../components/document/AnalyzingOverlay';
 import documentService from '../../services/documentService';
@@ -79,7 +78,7 @@ export default function UploadDocument() {
       clearInterval(progressTimer);
       setUploadProgress(100);
 
-      const documentId = uploadRes.data?.id || uploadRes.data?.documentId;
+      const documentId = uploadRes.data?.data?.id || uploadRes.data?.id || uploadRes.data?.data?.documentId || uploadRes.data?.documentId;
       setIsUploading(false);
 
       if (!documentId) {
@@ -104,31 +103,25 @@ export default function UploadDocument() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10">
-          <div className="max-w-4xl mx-auto space-y-6">
+    <DashboardLayout portalType="client" title="Upload Contract">
+      <div className="max-w-4xl mx-auto space-y-6">
             <button
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition"
+              className="inline-flex items-center gap-2 text-xs text-slate-600 hover:text-indigo-600 font-medium transition"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back to Dashboard
             </button>
 
             <div>
-              <h1 className="text-2xl font-bold text-white">Upload Legal Contract</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-2xl font-bold text-slate-900">Upload Legal Contract</h1>
+              <p className="text-xs text-slate-500 mt-1">
                 Upload your contract for client-side validation, AES-256-GCM encryption, and AI risk categorization.
               </p>
             </div>
 
             {error && (
-              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-rose-300 text-sm">
+              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-rose-700 text-sm">
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -136,8 +129,8 @@ export default function UploadDocument() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* File Dropzone */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+              <div className="card">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-3">
                   Document File (PDF, DOCX, TXT — Max 25MB)
                 </label>
                 <UploadZone
@@ -148,8 +141,8 @@ export default function UploadDocument() {
               </div>
 
               {/* Metadata Fields */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm space-y-4">
-                <h2 className="text-sm font-semibold text-white mb-2">Contract Metadata</h2>
+              <div className="card space-y-4">
+                <h2 className="text-sm font-bold text-slate-900 mb-2">Contract Metadata</h2>
 
                 <div>
                   <label className="block text-xs text-slate-300 mb-1">Contract Title *</label>
@@ -217,14 +210,11 @@ export default function UploadDocument() {
                 </button>
               </div>
             </form>
-          </div>
-        </main>
       </div>
-
       {/* Analyzing Overlay */}
       {isAnalyzing && (
         <AnalyzingOverlay />
       )}
-    </div>
+    </DashboardLayout>
   );
 }

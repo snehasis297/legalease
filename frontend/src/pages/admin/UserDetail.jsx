@@ -14,8 +14,7 @@ import {
   Clock, 
   Activity 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import adminService from '../../services/adminService';
 import { formatDate } from '../../utils/formatters';
@@ -33,7 +32,8 @@ export default function UserDetail() {
     try {
       setLoading(true);
       const res = await adminService.getUser(id);
-      setUser(res.data);
+      const data = res.data?.data || res.data;
+      setUser(data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load user details.');
     } finally {
@@ -66,13 +66,8 @@ export default function UserDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="User Details">
+      <div className="space-y-6">
           <button
             onClick={() => navigate('/admin/users')}
             className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition"
@@ -119,30 +114,30 @@ export default function UserDetail() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  {user.status === 'LOCKED' && (
+                  {(user.accountStatus === 'LOCKED' || user.status === 'LOCKED') && (
                     <button
                       onClick={() => handleAction('UNLOCK')}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
                     >
                       <Unlock className="w-3.5 h-3.5" />
                       Unlock Account
                     </button>
                   )}
 
-                  {user.status !== 'SUSPENDED' && (
+                  {user.accountStatus !== 'SUSPENDED' && user.status !== 'SUSPENDED' && (
                     <button
                       onClick={() => handleAction('SUSPEND')}
-                      className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium transition flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
                     >
                       <Lock className="w-3.5 h-3.5" />
                       Suspend
                     </button>
                   )}
 
-                  {user.status !== 'DISABLED' && (
+                  {user.accountStatus !== 'DISABLED' && user.status !== 'DISABLED' && (
                     <button
                       onClick={() => handleAction('DISABLE')}
-                      className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
                     >
                       <Ban className="w-3.5 h-3.5" />
                       Disable & Issue Appeal
@@ -162,7 +157,9 @@ export default function UserDetail() {
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between py-2 border-b border-slate-800">
                       <span className="text-slate-400">Account Status</span>
-                      <span className="font-semibold text-white">{user.status}</span>
+                      <span className="font-semibold text-emerald-400 font-mono">
+                        {user.accountStatus || user.status || 'ACTIVE'}
+                      </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-slate-800">
                       <span className="text-slate-400">Masked Phone</span>
@@ -215,8 +212,7 @@ export default function UserDetail() {
               </div>
             </div>
           ) : null}
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

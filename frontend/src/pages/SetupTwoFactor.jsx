@@ -23,9 +23,10 @@ export default function SetupTwoFactor() {
       try {
         setLoading(true);
         const res = await authService.getTwoFactorSetup();
-        if (res.data) {
-          setQrCodeUri(res.data.qrCodeUri || '');
-          setSecretKey(res.data.secretKey || res.data.secret || '');
+        const payload = res.data?.data || res.data || {};
+        if (payload) {
+          setQrCodeUri(payload.qrCodeUri || payload.qrCode || '');
+          setSecretKey(payload.secretKey || payload.secret || payload.totpSecret || '');
         }
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to initialize 2FA setup.');

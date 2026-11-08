@@ -46,9 +46,14 @@ public class OtpService {
     }
 
     @Transactional
-    public void sendEmailOtp(User user, EmailVerification.OtpPurpose purpose) {
+    public String sendEmailOtp(User user, EmailVerification.OtpPurpose purpose) {
         String email = user.getEmail();
         String cooldownKey = "otp_cooldown:" + email;
+
+        Optional<EmailVerification> lastVerification = emailVerificationRepository.findTopByUserAndPurposeAndIsUsedFalseOrderByCreatedAtDesc(user, purpose);
+        if (lastVerification.isPresent() && lastVerification.get().getAttempts() >= 3 && lastVerification.get().getCreatedAt().isAfter(LocalDateTime.now().minusMinutes(30))) {
+            throw new RateLimitException("Too many incorrect attempts. Please wait 30 minutes before requesting a new code.");
+        }
 
         try {
             if (redisTemplate != null && Boolean.TRUE.equals(redisTemplate.hasKey(cooldownKey))) {
@@ -80,6 +85,7 @@ public class OtpService {
         // Send Email
         emailService.sendOtpEmail(email, rawOtp, purpose.name());
         log.info("[OTP GENERATED] Email: {}, Purpose: {}, OTP: {}", email, purpose, rawOtp);
+        return rawOtp;
     }
 
     @Transactional
@@ -121,7 +127,7 @@ public class OtpService {
             throw new RateLimitException("Maximum attempts exceeded. Cooldown for 30 minutes initiated.");
         }
 
-        boolean matches = "123456".equals(rawOtp) || otpPasswordEncoder.matches(rawOtp, verification.getOtpHash());
+        boolean matches = otpPasswordEncoder.matches(rawOtp, verification.getOtpHash());
         if (!matches) {
             verification.setAttempts(verification.getAttempts() + 1);
             emailVerificationRepository.save(verification);

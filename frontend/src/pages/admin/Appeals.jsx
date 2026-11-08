@@ -9,8 +9,7 @@ import {
   Clock, 
   RefreshCw 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import appealService from '../../services/appealService';
 import { formatDate } from '../../utils/formatters';
@@ -26,9 +25,11 @@ export default function Appeals() {
     try {
       setLoading(true);
       const res = await appealService.getAllAppeals({ page: 0, size: 50 });
-      setAppeals(res.data?.content || res.data || []);
+      const appealList = res.data?.data?.content || res.data?.content || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setAppeals(Array.isArray(appealList) ? appealList : []);
     } catch (err) {
       console.error('Failed to load appeals:', err);
+      setAppeals([]);
     } finally {
       setLoading(false);
     }
@@ -38,23 +39,19 @@ export default function Appeals() {
     fetchAppeals();
   }, []);
 
-  const filtered = appeals.filter((a) => {
+  const appealList = Array.isArray(appeals) ? appeals : [];
+  const filtered = appealList.filter((a) => {
     if (statusFilter === 'ALL') return true;
-    return (a.status || 'PENDING') === statusFilter;
+    return (a.status || 'PENDING').toUpperCase() === statusFilter.toUpperCase();
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="Account Appeals">
+      <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Account Restoration Appeals</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">Account Restoration Appeals</h1>
+              <p className="text-xs text-slate-300 mt-1">
                 30-day tokenized petitions submitted by disabled or flagged accounts with identity proofs.
               </p>
             </div>
@@ -63,7 +60,7 @@ export default function Appeals() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                className="px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
               >
                 <option value="ALL">All Appeals</option>
                 <option value="PENDING">Pending Review</option>
@@ -73,7 +70,7 @@ export default function Appeals() {
 
               <button
                 onClick={fetchAppeals}
-                className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
+                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold transition shadow-sm"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
@@ -81,7 +78,7 @@ export default function Appeals() {
           </div>
 
           {/* Table */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+          <div className="bg-slate-900/90 border border-slate-700/60 rounded-2xl overflow-hidden shadow-md">
             {loading ? (
               <div className="py-20 flex justify-center">
                 <LoadingSpinner />
@@ -152,8 +149,7 @@ export default function Appeals() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

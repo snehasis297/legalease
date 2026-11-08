@@ -23,7 +23,7 @@ export default function AppealExpired() {
             <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <p className="text-xs text-slate-300">
               For manual record review or legal data retrieval requests, please contact our compliance desk directly at{' '}
-              <span className="text-indigo-400 font-mono">compliance@legalease.com</span>.
+              <span className="text-indigo-400 font-mono">legalease.systemsupport@gmail.com</span>.
             </p>
           </div>
         </div>

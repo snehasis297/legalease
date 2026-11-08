@@ -72,7 +72,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void register(RegisterRequest req, HttpServletRequest request) {
+    public String register(RegisterRequest req, HttpServletRequest request) {
         String clientIp = deviceFingerprintUtil.getClientIp(request);
 
         // 1. Rate Limit: 3 / IP / hour (generous limit for localhost during testing)
@@ -99,19 +99,24 @@ public class AuthService {
             role = User.Role.LAWYER;
         }
 
+        String rawPassword = (req.getPassword() != null && !req.getPassword().isBlank())
+                ? req.getPassword()
+                : java.util.UUID.randomUUID().toString();
+
         User user = new User(
                 req.getFullName().trim(),
                 req.getEmail().trim().toLowerCase(),
-                passwordEncoder.encode(req.getPassword()),
+                passwordEncoder.encode(rawPassword),
                 role
         );
         user.setLastLoginIp(clientIp);
         user.setAccountStatus(User.AccountStatus.PENDING_VERIFICATION);
         User savedUser = userRepository.save(user);
 
-        // Send Email OTP
-        otpService.sendEmailOtp(savedUser, EmailVerification.OtpPurpose.REGISTRATION);
+        // Send Email OTP and return raw OTP for reliable delivery
+        String otp = otpService.sendEmailOtp(savedUser, EmailVerification.OtpPurpose.REGISTRATION);
         log.info("New registration: {} (Role: {}) from IP: {}", savedUser.getEmail(), role, clientIp);
+        return otp;
     }
 
     @Transactional
@@ -127,6 +132,9 @@ public class AuthService {
             user.setAccountStatus(User.AccountStatus.PENDING_KYC);
         }
         userRepository.save(user);
+
+        String clientIp = deviceFingerprintUtil.getClientIp(request);
+        handleDeviceSession(user, request, null, clientIp);
 
         return buildAuthResponse(user, request, req.getPhoneNumber());
     }
@@ -148,13 +156,13 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = {UnauthorizedException.class, AccountDisabledException.class, AccountLockedException.class, AccountSuspendedException.class})
     public AuthResponse login(LoginRequest req, HttpServletRequest request) {
         String clientIp = deviceFingerprintUtil.getClientIp(request);
         String email = req.getEmail().trim().toLowerCase();
 
-        // 1. Sliding Window Rate limit: 5 / IP / 10 min
-        rateLimitService.checkRateLimit("login", clientIp, 5, 600);
+        // 1. Sliding Window Rate limit: 30 / IP / 10 min
+        rateLimitService.checkRateLimit("login", clientIp, 30, 600);
 
         // 2. Fetch User
         Optional<User> userOpt = userRepository.findByEmail(email);
@@ -165,9 +173,25 @@ public class AuthService {
 
         User user = userOpt.get();
 
-        // 3. Status checks
+        // 3. Status & Temporary Lockout checks
+        if (user.getLockedUntil() != null) {
+            if (user.getLockedUntil().isAfter(LocalDateTime.now())) {
+                long remainingMinutes = java.time.Duration.between(LocalDateTime.now(), user.getLockedUntil()).toMinutes() + 1;
+                throw new AccountDisabledException("Account is temporarily blocked due to repeated failed login attempts. Please try again in " + remainingMinutes + " minute(s), or reset your password.");
+            } else {
+                // Lockout window expired: automatically restore
+                user.setLockedUntil(null);
+                user.setFailedLoginCount(0);
+                if (user.getAccountStatus() == User.AccountStatus.TEMPORARILY_DISABLED) {
+                    user.setAccountStatus(User.AccountStatus.ACTIVE);
+                    user.setDisableReason(null);
+                }
+                userRepository.save(user);
+            }
+        }
+
         if (user.getAccountStatus() == User.AccountStatus.LOCKED) {
-            throw new AccountLockedException("Account locked due to excessive failed attempts. Please contact security@legalease.com.");
+            throw new AccountLockedException("Account locked due to excessive failed attempts. Please contact legalease.systemsupport@gmail.com.");
         }
         if (user.getAccountStatus() == User.AccountStatus.SUSPENDED) {
             throw new AccountSuspendedException("Account suspended: " + (user.getDisableReason() != null ? user.getDisableReason() : "Security violation"));
@@ -181,7 +205,6 @@ public class AuthService {
         // 4. Password validation
         if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
             user.setFailedLoginCount(user.getFailedLoginCount() + 1);
-            userRepository.save(user);
 
             recordLoginAttempt(email, clientIp, false, "Invalid password", req.getDeviceFingerprint());
 
@@ -192,17 +215,30 @@ public class AuthService {
 
             if (user.getFailedLoginCount() >= 5) {
                 user.setAccountStatus(User.AccountStatus.TEMPORARILY_DISABLED);
-                user.setDisableReason("5 consecutive incorrect password entries");
+                user.setLockedUntil(LocalDateTime.now().plusMinutes(15));
+                user.setDisableReason("5 consecutive incorrect password entries - temporary 15-minute security block");
                 userRepository.save(user);
-                throw new AccountDisabledException("Account temporarily paused due to 5 wrong passwords. Please check your email for appeal instructions.");
+
+                // Invalidate all active sessions for security
+                try {
+                    refreshTokenRepository.revokeAllByUserId(user.getId());
+                } catch (Exception ignored) {}
+
+                // Send security notification email
+                emailService.sendAccountDisabledEmail(user.getEmail(), user.getFullName(),
+                        "Your account has been temporarily blocked for 15 minutes due to 5 consecutive failed login attempts.", "lockout-" + user.getId());
+
+                throw new AccountDisabledException("Account has been temporarily blocked for 15 minutes due to 5 consecutive incorrect passwords. Active sessions have expired. You may also reset your password immediately.");
             }
 
+            userRepository.save(user);
             int remaining = 5 - user.getFailedLoginCount();
-            throw new UnauthorizedException("Invalid email or password. " + remaining + " attempts remaining before account lock.");
+            throw new UnauthorizedException("Invalid email or password. " + remaining + " attempt(s) remaining before temporary account block.");
         }
 
         // 5. Success reset & device tracking
         user.setFailedLoginCount(0);
+        user.setLockedUntil(null);
         user.setLastLoginAt(LocalDateTime.now());
         user.setLastLoginIp(clientIp);
         user.setLoginCount(user.getLoginCount() + 1);
@@ -286,6 +322,7 @@ public class AuthService {
 
         return new AuthResponse(
                 newAccessToken,
+                rawRefreshToken,
                 user.getRole() == User.Role.ADMIN ? jwtUtil.getAdminExpiration() : jwtUtil.getAccessExpiration(),
                 user.getId(),
                 user.getEmail(),
@@ -336,11 +373,37 @@ public class AuthService {
     }
 
     @Transactional
-    public void resendOtp(String email) {
+    public String resendOtp(String email) {
         User user = userRepository.findByEmail(email.trim().toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        rateLimitService.checkRateLimit("otp", String.valueOf(user.getId()), 3, 3600);
-        otpService.sendEmailOtp(user, EmailVerification.OtpPurpose.REGISTRATION);
+        rateLimitService.checkRateLimit("otp", String.valueOf(user.getId()), 10, 3600);
+        return otpService.sendEmailOtp(user, EmailVerification.OtpPurpose.REGISTRATION);
+    }
+
+    @Transactional
+    public String sendLoginOtp(String email) {
+        User user = userRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("No account registered with this email address"));
+        return otpService.sendEmailOtp(user, EmailVerification.OtpPurpose.REGISTRATION);
+    }
+
+    @Transactional
+    public AuthResponse verifyLoginOtp(String email, String otp, HttpServletRequest request) {
+        otpService.verifyEmailOtp(email.trim().toLowerCase(), otp.trim(), EmailVerification.OtpPurpose.REGISTRATION);
+        User user = userRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        user.setIsEmailVerified(true);
+        if (user.getAccountStatus() == User.AccountStatus.PENDING_VERIFICATION) {
+            user.setAccountStatus(Boolean.TRUE.equals(user.getIsIdVerified()) ? User.AccountStatus.ACTIVE : User.AccountStatus.PENDING_KYC);
+        }
+        user.setLastLoginAt(LocalDateTime.now());
+        user.setFailedLoginCount(0);
+        userRepository.save(user);
+
+        String clientIp = deviceFingerprintUtil.getClientIp(request);
+        handleDeviceSession(user, request, null, clientIp);
+
+        return buildAuthResponse(user, request, null);
     }
 
     private AuthResponse buildAuthResponse(User user, HttpServletRequest request, String optionalPhone) {
@@ -364,6 +427,7 @@ public class AuthService {
 
         return new AuthResponse(
                 accessToken,
+                rawRefreshToken,
                 expiry,
                 user.getId(),
                 user.getEmail(),
@@ -397,5 +461,55 @@ public class AuthService {
     private void recordLoginAttempt(String email, String ip, boolean success, String reason, String fingerprint) {
         LoginAttempt attempt = new LoginAttempt(email, ip, success, reason, fingerprint);
         loginAttemptRepository.save(attempt);
+    }
+
+    @Transactional
+    public java.util.Map<String, String> getTwoFactorSetup(User user) {
+        dev.samstevens.totp.secret.SecretGenerator generator = new dev.samstevens.totp.secret.DefaultSecretGenerator();
+        String secret = generator.generate();
+
+        dev.samstevens.totp.qr.QrData data = new dev.samstevens.totp.qr.QrData.Builder()
+                .label(user.getEmail())
+                .secret(secret)
+                .issuer("LegalEase")
+                .algorithm(HashingAlgorithm.SHA1)
+                .digits(6)
+                .period(30)
+                .build();
+
+        String qrCodeUri = "";
+        try {
+            dev.samstevens.totp.qr.QrGenerator qrGenerator = new dev.samstevens.totp.qr.ZxingPngQrGenerator();
+            byte[] imageData = qrGenerator.generate(data);
+            qrCodeUri = dev.samstevens.totp.util.Utils.getDataUriForImage(imageData, qrGenerator.getImageMimeType());
+        } catch (Exception e) {
+            log.warn("Failed to generate QR image: " + e.getMessage());
+            qrCodeUri = data.getUri();
+        }
+
+        user.setTotpSecret(secret);
+        userRepository.save(user);
+
+        java.util.Map<String, String> response = new java.util.HashMap<>();
+        response.put("secretKey", secret);
+        response.put("secret", secret);
+        response.put("qrCodeUri", qrCodeUri);
+        return response;
+    }
+
+    @Transactional
+    public void enableTwoFactor(User user, String code) {
+        if (user.getTotpSecret() == null) {
+            throw new IllegalArgumentException("2FA setup not initialized. Please request a new QR code.");
+        }
+
+        TimeProvider timeProvider = new SystemTimeProvider();
+        CodeVerifier verifier = new DefaultCodeVerifier(new dev.samstevens.totp.code.DefaultCodeGenerator(HashingAlgorithm.SHA1), timeProvider);
+        if (!verifier.isValidCode(user.getTotpSecret(), code.trim())) {
+            throw new UnauthorizedException("Invalid 2FA verification code. Please check your authenticator app.");
+        }
+
+        user.setIsTotpEnabled(true);
+        userRepository.save(user);
     }
 }

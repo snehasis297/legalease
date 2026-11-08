@@ -99,8 +99,8 @@ export const VerifyPhone = () => {
                   Enter 6-Digit SMS Code
                 </label>
                 <OtpInput length={6} value={otp} onChange={setOtp} />
-                <p className="text-[11px] text-accent text-center mt-3 font-mono">
-                  (In dev mode, check backend console or use: 123456)
+                <p className="text-[11px] text-slate-400 text-center mt-3 font-mono">
+                  Enter the 6-digit verification code delivered to your phone.
                 </p>
               </div>
 

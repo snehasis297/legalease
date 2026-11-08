@@ -31,29 +31,29 @@ export const AdminSidebar = () => {
   ];
 
   return (
-    <aside className="w-64 bg-[#0A0A12] border-r border-danger/20 flex flex-col justify-between h-screen fixed top-0 left-0 z-30 pt-4 pb-6">
+    <aside className="w-64 bg-[#0B0F19] border-r border-slate-800 flex flex-col justify-between h-screen fixed top-0 left-0 z-30 pt-4 pb-6 shadow-xl text-white">
       <div>
         {/* Brand */}
-        <div className="px-6 pb-5 border-b border-white/10 flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-lg bg-danger/20 border border-danger/60 flex items-center justify-center">
-            <ShieldAlert className="w-5 h-5 text-danger" />
+        <div className="px-6 pb-5 border-b border-slate-800 flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-lg bg-rose-500/20 border border-rose-500/50 flex items-center justify-center">
+            <ShieldAlert className="w-5 h-5 text-rose-400" />
           </div>
           <div>
             <h1 className="font-bold text-base text-white tracking-wide">LegalEase</h1>
-            <span className="text-[11px] text-danger tracking-wider uppercase font-semibold">
+            <span className="text-[11px] text-rose-400 tracking-wider uppercase font-bold">
               Root Admin
             </span>
           </div>
         </div>
 
         {/* Admin Identity */}
-        <div className="mx-4 my-4 p-3 rounded-xl bg-card border border-danger/20 flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-full bg-danger/20 border border-danger/50 flex items-center justify-center text-danger font-bold text-xs">
+        <div className="mx-4 my-4 p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center space-x-3 shadow-md">
+          <div className="w-9 h-9 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-300 font-bold text-xs shrink-0">
             ADM
           </div>
           <div className="overflow-hidden">
-            <p className="text-xs font-semibold text-white truncate">{user?.fullName}</p>
-            <p className="text-[11px] text-textSecondary truncate">{user?.email}</p>
+            <p className="text-xs font-bold text-white truncate">{user?.fullName}</p>
+            <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
           </div>
         </div>
 
@@ -66,10 +66,10 @@ export const AdminSidebar = () => {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  `flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-danger/20 text-white border border-danger/50 shadow-glow-danger'
-                      : 'text-textSecondary hover:text-white hover:bg-white/5'
+                      ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 font-bold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
                   }`
                 }
               >
@@ -81,10 +81,10 @@ export const AdminSidebar = () => {
         </nav>
       </div>
 
-      <div className="px-4 pt-4 border-t border-white/10">
+      <div className="px-4 pt-4 border-t border-slate-800">
         <button
           onClick={logout}
-          className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-xs font-medium text-danger/80 hover:text-danger hover:bg-danger/10 transition-colors"
+          className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           <span>Exit Admin Session</span>

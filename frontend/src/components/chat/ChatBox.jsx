@@ -25,12 +25,13 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
     const initSession = async () => {
       try {
         const res = await chatService.createSession(documentId);
-        const newSession = res.data;
+        const newSession = res.data?.data || res.data;
         setSession(newSession);
 
         // Load history
-        const historyRes = await chatService.getHistory(newSession.id);
-        setMessages(historyRes.data || []);
+        const historyRes = await chatService.getHistory(documentId);
+        const historyData = historyRes.data?.data || historyRes.data || [];
+        setMessages(Array.isArray(historyData) ? historyData : []);
       } catch (err) {
         console.error('Failed to initialize chat session', err);
       }
@@ -46,7 +47,7 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
 
   const handleSendMessage = async (textToSend) => {
     const text = textToSend || inputText;
-    if (!text.trim() || !session || isStreaming) return;
+    if (!text.trim() || !documentId || isStreaming) return;
 
     const userMessage = { id: Date.now(), role: 'USER', content: text };
     setMessages((prev) => [...prev, userMessage]);
@@ -57,11 +58,15 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
     let accumulated = '';
 
     await chatService.streamMessage(
-      session.id,
+      documentId,
       text,
       (token) => {
         accumulated += token;
         setStreamingContent(accumulated);
+      },
+      (err) => {
+        console.error('Chat streaming failed', err);
+        setIsStreaming(false);
       },
       () => {
         // Complete
@@ -70,10 +75,6 @@ export const ChatBox = ({ documentId, documentTitle, isOpen, onClose }) => {
           { id: Date.now() + 1, role: 'ASSISTANT', content: accumulated },
         ]);
         setStreamingContent('');
-        setIsStreaming(false);
-      },
-      (err) => {
-        console.error('Chat streaming failed', err);
         setIsStreaming(false);
       }
     );

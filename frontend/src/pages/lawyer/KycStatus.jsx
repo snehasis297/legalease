@@ -11,8 +11,7 @@ import {
   RefreshCw,
   AlertTriangle
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import lawyerService from '../../services/lawyerService';
 import { formatDate } from '../../utils/formatters';
@@ -42,14 +41,8 @@ export default function KycStatus() {
   const status = (kycData?.status || 'PENDING').toUpperCase();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10">
-          <div className="max-w-2xl mx-auto space-y-6">
+    <DashboardLayout portalType="lawyer" title="Bar Verification Status">
+      <div className="max-w-2xl mx-auto space-y-6">
             <button
               onClick={() => navigate('/lawyer/dashboard')}
               className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition"
@@ -157,8 +150,6 @@ export default function KycStatus() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }

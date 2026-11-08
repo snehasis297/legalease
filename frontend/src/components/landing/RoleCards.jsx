@@ -63,10 +63,10 @@ export const RoleCards = () => {
     <section 
       id="roles" 
       onClick={() => setActiveSection('roles')}
-      className={`py-24 relative transition-all duration-500 cursor-pointer ${
+      className={`py-24 scroll-mt-24 relative transition-all duration-300 ${
         isActive 
-          ? 'bg-gradient-to-b from-amber-950/40 via-[#090910] to-[#090910] ring-2 ring-amber-500/40 shadow-[0_0_80px_rgba(245,158,11,0.18)]' 
-          : 'bg-[#090910]'
+          ? 'bg-amber-500/10 backdrop-blur-md ring-2 ring-amber-500/40 shadow-[0_0_80px_rgba(245,158,11,0.18)]' 
+          : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

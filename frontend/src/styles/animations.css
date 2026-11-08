@@ -30,3 +30,78 @@
 .scan-animation {
   animation: scanline 4s linear infinite;
 }
+
+/* Hardware-Accelerated Ambient Orbs Background Animations */
+.animate-float-orb-1,
+.animate-float-orb-2,
+.animate-float-orb-3,
+.animate-float-orb-4 {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+@keyframes floatOrb1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-25px, 30px, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(20px, -20px, 0) scale(0.96);
+  }
+}
+
+@keyframes floatOrb2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(30px, -25px, 0) scale(1.04);
+  }
+  66% {
+    transform: translate3d(-20px, 25px, 0) scale(0.96);
+  }
+}
+
+@keyframes floatOrb3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(25px, 20px, 0) scale(0.96);
+  }
+  66% {
+    transform: translate3d(-20px, -25px, 0) scale(1.04);
+  }
+}
+
+@keyframes floatOrb4 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-30px, -20px, 0) scale(1.06);
+  }
+  66% {
+    transform: translate3d(25px, 20px, 0) scale(0.96);
+  }
+}
+
+.animate-float-orb-1 {
+  animation: floatOrb1 16s ease-in-out infinite;
+}
+
+.animate-float-orb-2 {
+  animation: floatOrb2 19s ease-in-out infinite;
+}
+
+.animate-float-orb-3 {
+  animation: floatOrb3 15s ease-in-out infinite;
+}
+
+.animate-float-orb-4 {
+  animation: floatOrb4 21s ease-in-out infinite;
+}

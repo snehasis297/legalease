@@ -5,10 +5,12 @@ import com.legalease.dto.response.ClauseResponse;
 import com.legalease.entity.Clause;
 import com.legalease.entity.Document;
 import com.legalease.entity.DocumentAnalysis;
+import com.legalease.entity.Notification;
 import com.legalease.exception.ResourceNotFoundException;
 import com.legalease.repository.ClauseRepository;
 import com.legalease.repository.DocumentAnalysisRepository;
 import com.legalease.repository.DocumentRepository;
+import com.legalease.repository.NotificationRepository;
 import com.legalease.util.AesEncryptionUtil;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -41,19 +43,22 @@ public class AnalysisService {
     private final AesEncryptionUtil aesEncryptionUtil;
     private final AiService aiService;
     private final EmailService emailService;
+    private final NotificationRepository notificationRepository;
 
     public AnalysisService(DocumentRepository documentRepository,
                            DocumentAnalysisRepository documentAnalysisRepository,
                            ClauseRepository clauseRepository,
                            AesEncryptionUtil aesEncryptionUtil,
                            AiService aiService,
-                           EmailService emailService) {
+                           EmailService emailService,
+                           NotificationRepository notificationRepository) {
         this.documentRepository = documentRepository;
         this.documentAnalysisRepository = documentAnalysisRepository;
         this.clauseRepository = clauseRepository;
         this.aesEncryptionUtil = aesEncryptionUtil;
         this.aiService = aiService;
         this.emailService = emailService;
+        this.notificationRepository = notificationRepository;
     }
 
     @Async("taskExecutor")
@@ -166,6 +171,13 @@ public class AnalysisService {
                     overallLevel.name()
             );
 
+            // 9. Save in-app notification for real-time alerts
+            if (document.getUser() != null) {
+                String notifTitle = "AI Contract Analysis Complete";
+                String notifMsg = "AI analysis completed for '" + document.getOriginalFilename() + "'. Overall Threat Score: " + riskScore + "/100 (" + overallLevel.name() + " RISK).";
+                notificationRepository.save(new Notification(document.getUser(), notifTitle, notifMsg, "AI_ANALYSIS_COMPLETED", document.getId()));
+            }
+
             log.info("Analysis complete for doc #{}. Clauses: {}, Score: {}, Level: {}, Time: {}ms",
                     documentId, totalClauses, riskScore, overallLevel, durationMs);
 
@@ -176,6 +188,7 @@ public class AnalysisService {
         }
     }
 
+    @Transactional(readOnly = true)
     public AnalysisResponse getDocumentAnalysis(Long documentId) {
         DocumentAnalysis analysis = documentAnalysisRepository.findByDocumentId(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Analysis not yet available for document id: " + documentId));
@@ -184,7 +197,7 @@ public class AnalysisService {
 
         AnalysisResponse resp = new AnalysisResponse();
         resp.setDocumentId(documentId);
-        resp.setOriginalFilename(analysis.getDocument().getOriginalFilename());
+        resp.setOriginalFilename(analysis.getDocument() != null ? analysis.getDocument().getOriginalFilename() : "document.pdf");
         resp.setFullSummary(analysis.getFullSummary());
         resp.setRiskScore(analysis.getRiskScore());
         resp.setRiskLevel(analysis.getRiskLevel() != null ? analysis.getRiskLevel().name() : "LOW");
@@ -198,7 +211,7 @@ public class AnalysisService {
         List<ClauseResponse> clauseResponses = clauses.stream()
                 .map(c -> new ClauseResponse(
                         c.getId(),
-                        c.getDocument().getId(),
+                        documentId,
                         c.getClauseNumber(),
                         c.getClauseText(),
                         c.getExplanation(),
@@ -208,14 +221,30 @@ public class AnalysisService {
                 .collect(Collectors.toList());
 
         resp.setClauses(clauseResponses);
+
+        Document doc = analysis.getDocument();
+        if (doc != null) {
+            if (doc.getAssignedLawyer() != null) {
+                resp.setAssignedLawyerName(doc.getAssignedLawyer().getFullName());
+            }
+            resp.setLawyerRiskLevel(doc.getLawyerRiskLevel());
+            resp.setLawyerNotes(doc.getLawyerNotes());
+            resp.setLawyerRecommendations(doc.getLawyerRecommendations());
+            resp.setLawyerReviewedAt(doc.getLawyerReviewedAt());
+            resp.setReviewStatus(doc.getReviewStatus() != null ? doc.getReviewStatus() : "PENDING_REVIEW");
+            resp.setFinalRiskStatus(doc.getFinalRiskStatus());
+            resp.setFinalRiskLabel(doc.getFinalRiskLabel());
+        }
+
         return resp;
     }
 
+    @Transactional(readOnly = true)
     public List<ClauseResponse> getDocumentClauses(Long documentId) {
         return clauseRepository.findByDocumentIdOrderByClauseNumberAsc(documentId).stream()
                 .map(c -> new ClauseResponse(
                         c.getId(),
-                        c.getDocument().getId(),
+                        documentId,
                         c.getClauseNumber(),
                         c.getClauseText(),
                         c.getExplanation(),

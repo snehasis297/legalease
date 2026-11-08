@@ -13,8 +13,8 @@ export const CtaSection = () => {
       onClick={() => setActiveSection('cta')}
       className={`py-24 relative overflow-hidden transition-all duration-500 cursor-pointer ${
         isActive 
-          ? 'bg-gradient-to-b from-purple-950/50 via-[#0A0A0F] to-[#0A0A0F] ring-2 ring-purple-500/40 shadow-[0_0_80px_rgba(168,85,247,0.2)]'
-          : 'bg-[#0A0A0F]'
+          ? 'bg-purple-500/10 backdrop-blur-md ring-2 ring-purple-500/40 shadow-[0_0_80px_rgba(168,85,247,0.2)]'
+          : 'bg-transparent'
       }`}
     >
       {/* Background glow orb */}

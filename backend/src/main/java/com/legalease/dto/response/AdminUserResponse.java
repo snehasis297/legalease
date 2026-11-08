@@ -72,6 +72,14 @@ public class AdminUserResponse {
         this.accountStatus = accountStatus;
     }
 
+    public String getStatus() {
+        return accountStatus;
+    }
+
+    public void setStatus(String status) {
+        this.accountStatus = status;
+    }
+
     public Integer getFailedLoginCount() {
         return failedLoginCount;
     }

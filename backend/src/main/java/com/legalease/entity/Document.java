@@ -57,6 +57,21 @@ public class Document {
     @Column(name = "lawyer_notes", columnDefinition = "TEXT")
     private String lawyerNotes;
 
+    @Column(name = "lawyer_risk_level", length = 50)
+    private String lawyerRiskLevel;
+
+    @Column(name = "lawyer_recommendations", columnDefinition = "TEXT")
+    private String lawyerRecommendations;
+
+    @Column(name = "lawyer_reviewed_at")
+    private LocalDateTime lawyerReviewedAt;
+
+    @Column(name = "review_status", length = 50)
+    private String reviewStatus = "PENDING_REVIEW";
+
+    @Column(name = "final_risk_status", length = 100)
+    private String finalRiskStatus = "PENDING_LAWYER";
+
     @PrePersist
     protected void onCreate() {
         this.uploadTime = LocalDateTime.now();
@@ -179,5 +194,58 @@ public class Document {
 
     public void setLawyerNotes(String lawyerNotes) {
         this.lawyerNotes = lawyerNotes;
+    }
+
+    public String getLawyerRiskLevel() {
+        return lawyerRiskLevel;
+    }
+
+    public void setLawyerRiskLevel(String lawyerRiskLevel) {
+        this.lawyerRiskLevel = lawyerRiskLevel;
+    }
+
+    public String getLawyerRecommendations() {
+        return lawyerRecommendations;
+    }
+
+    public void setLawyerRecommendations(String lawyerRecommendations) {
+        this.lawyerRecommendations = lawyerRecommendations;
+    }
+
+    public LocalDateTime getLawyerReviewedAt() {
+        return lawyerReviewedAt;
+    }
+
+    public void setLawyerReviewedAt(LocalDateTime lawyerReviewedAt) {
+        this.lawyerReviewedAt = lawyerReviewedAt;
+    }
+
+    public String getReviewStatus() {
+        return reviewStatus;
+    }
+
+    public void setReviewStatus(String reviewStatus) {
+        this.reviewStatus = reviewStatus;
+    }
+
+    public String getFinalRiskStatus() {
+        return finalRiskStatus;
+    }
+
+    public void setFinalRiskStatus(String finalRiskStatus) {
+        this.finalRiskStatus = finalRiskStatus;
+    }
+
+    public String getFinalRiskLabel() {
+        if ("LOW_RISK_VERIFIED".equalsIgnoreCase(finalRiskStatus)) {
+            return "Low Risk – Reviewed by AI and Lawyer";
+        } else if ("HIGH_RISK".equalsIgnoreCase(finalRiskStatus)) {
+            return "High Risk – Action Required";
+        } else if ("MEDIUM_RISK".equalsIgnoreCase(finalRiskStatus)) {
+            return "Medium Risk – Caution Advised";
+        } else if ("REVIEWED".equalsIgnoreCase(reviewStatus)) {
+            return "Reviewed by Counsel";
+        }
+        return "Pending Counsel Review";
     }
 }

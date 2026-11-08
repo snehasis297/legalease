@@ -10,8 +10,7 @@ import {
   Lock,
   Laptop
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import PasswordStrength from '../../components/auth/PasswordStrength';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
@@ -64,13 +63,8 @@ export default function Security() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="client" title="Security & Access">
+      <div className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Security & Access Controls</h1>
             <p className="text-xs text-slate-400 mt-1">
@@ -233,8 +227,7 @@ export default function Security() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

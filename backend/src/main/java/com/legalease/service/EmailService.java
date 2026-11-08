@@ -19,7 +19,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:support@legalease.com}")
+    @Value("${spring.mail.username:legalease.systemsupport@gmail.com}")
     private String fromEmail;
 
     @Value("${app.frontend-url:http://localhost:5173}")

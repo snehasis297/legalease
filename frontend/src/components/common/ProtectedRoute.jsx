@@ -24,22 +24,22 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   // Account Safety & Status Redirects
   if (status === 'TEMPORARILY_DISABLED' || status === 'DISABLED' || status === 'AGE_VERIFICATION_REQUIRED') {
-    if (location.pathname !== '/disabled') {
-      return <Navigate to="/disabled" replace />;
+    if (location.pathname !== '/disabled' && location.pathname !== '/account-disabled') {
+      return <Navigate to="/account-disabled" replace />;
     }
     return children;
   }
 
   if (status === 'SUSPENDED') {
-    if (location.pathname !== '/suspended') {
-      return <Navigate to="/suspended" replace />;
+    if (location.pathname !== '/suspended' && location.pathname !== '/account-suspended') {
+      return <Navigate to="/account-suspended" replace />;
     }
     return children;
   }
 
   if (status === 'LOCKED') {
-    if (location.pathname !== '/locked') {
-      return <Navigate to="/locked" replace />;
+    if (location.pathname !== '/locked' && location.pathname !== '/account-locked') {
+      return <Navigate to="/account-locked" replace />;
     }
     return children;
   }
@@ -61,9 +61,11 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   // Role authorization
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
-    if (user.role === 'LAWYER') return <Navigate to="/lawyer/dashboard" replace />;
+  const userRole = (user.role || '').toUpperCase();
+  const normalizedAllowedRoles = allowedRoles.map(r => r.toUpperCase());
+  if (normalizedAllowedRoles.length > 0 && !normalizedAllowedRoles.includes(userRole)) {
+    if (userRole === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    if (userRole === 'LAWYER') return <Navigate to="/lawyer/dashboard" replace />;
     return <Navigate to="/client/dashboard" replace />;
   }
 

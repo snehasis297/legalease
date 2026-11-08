@@ -15,6 +15,13 @@ public class DocumentResponse {
     private Long assignedLawyerId;
     private String assignedLawyerName;
     private String lawyerNotes;
+    private String lawyerRiskLevel;
+    private String lawyerRecommendations;
+    private LocalDateTime lawyerReviewedAt;
+    private String reviewStatus;
+    private String finalRiskStatus;
+    private String finalRiskLabel;
+    private String contractType = "CONTRACT";
     private Integer riskScore;
     private String riskLevel;
 
@@ -123,5 +130,77 @@ public class DocumentResponse {
 
     public void setRiskLevel(String riskLevel) {
         this.riskLevel = riskLevel;
+    }
+
+    public String getLawyerRiskLevel() {
+        return lawyerRiskLevel;
+    }
+
+    public void setLawyerRiskLevel(String lawyerRiskLevel) {
+        this.lawyerRiskLevel = lawyerRiskLevel;
+    }
+
+    public String getLawyerRecommendations() {
+        return lawyerRecommendations;
+    }
+
+    public void setLawyerRecommendations(String lawyerRecommendations) {
+        this.lawyerRecommendations = lawyerRecommendations;
+    }
+
+    public LocalDateTime getLawyerReviewedAt() {
+        return lawyerReviewedAt;
+    }
+
+    public void setLawyerReviewedAt(LocalDateTime lawyerReviewedAt) {
+        this.lawyerReviewedAt = lawyerReviewedAt;
+    }
+
+    public String getReviewStatus() {
+        return reviewStatus;
+    }
+
+    public void setReviewStatus(String reviewStatus) {
+        this.reviewStatus = reviewStatus;
+    }
+
+    public String getFinalRiskStatus() {
+        return finalRiskStatus;
+    }
+
+    public void setFinalRiskStatus(String finalRiskStatus) {
+        this.finalRiskStatus = finalRiskStatus;
+    }
+
+    public String getFinalRiskLabel() {
+        return finalRiskLabel;
+    }
+
+    public void setFinalRiskLabel(String finalRiskLabel) {
+        this.finalRiskLabel = finalRiskLabel;
+    }
+
+    public String getContractType() {
+        return contractType;
+    }
+
+    public void setContractType(String contractType) {
+        this.contractType = contractType;
+    }
+
+    public Integer getOverallRiskScore() {
+        return riskScore;
+    }
+
+    public String getOriginalFileName() {
+        return originalFilename;
+    }
+
+    public String getTitle() {
+        return originalFilename;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return uploadTime;
     }
 }

@@ -9,8 +9,7 @@ import {
   RefreshCw,
   ShieldCheck 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import RiskBadge from '../../components/analysis/RiskBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import adminService from '../../services/adminService';
@@ -29,9 +28,11 @@ export default function AllDocuments() {
     try {
       setLoading(true);
       const res = await adminService.getAllDocuments({ page: 0, size: 50 });
-      setDocuments(res.data?.content || res.data || []);
+      const docs = res.data?.data?.content || res.data?.content || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setDocuments(Array.isArray(docs) ? docs : []);
     } catch (err) {
       console.error('Failed to load platform documents:', err);
+      setDocuments([]);
     } finally {
       setLoading(false);
     }
@@ -56,35 +57,31 @@ export default function AllDocuments() {
     }
   };
 
-  const filtered = documents.filter((doc) => {
-    const titleMatch = (doc.title || doc.originalFileName || '').toLowerCase().includes(search.toLowerCase()) ||
-                       (doc.userEmail || doc.uploadedBy || '').toLowerCase().includes(search.toLowerCase());
+  const docList = Array.isArray(documents) ? documents : [];
+  const filtered = docList.filter((doc) => {
+    const titleMatch = (doc.title || doc.originalFilename || doc.originalFileName || '').toLowerCase().includes(search.toLowerCase()) ||
+                       (doc.userEmail || doc.uploaderName || doc.uploadedBy || '').toLowerCase().includes(search.toLowerCase());
     let riskMatch = true;
-    if (filterRisk === 'HIGH') riskMatch = (doc.overallRiskScore || 0) >= 70;
-    else if (filterRisk === 'MEDIUM') riskMatch = (doc.overallRiskScore || 0) >= 40 && (doc.overallRiskScore || 0) < 70;
-    else if (filterRisk === 'LOW') riskMatch = (doc.overallRiskScore || 0) < 40;
+    if (filterRisk === 'HIGH') riskMatch = (doc.overallRiskScore || doc.riskScore || 0) >= 70;
+    else if (filterRisk === 'MEDIUM') riskMatch = (doc.overallRiskScore || doc.riskScore || 0) >= 40 && (doc.overallRiskScore || doc.riskScore || 0) < 70;
+    else if (filterRisk === 'LOW') riskMatch = (doc.overallRiskScore || doc.riskScore || 0) < 40;
     return titleMatch && riskMatch;
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="All Documents">
+      <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Platform Contracts Audit</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">Platform Contracts Audit</h1>
+              <p className="text-xs text-slate-300 mt-1">
                 Global overview of all encrypted contracts, risk classifications, and metadata.
               </p>
             </div>
 
             <button
               onClick={fetchDocuments}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition inline-flex items-center gap-2 text-xs"
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold transition inline-flex items-center gap-2 text-xs shadow-sm"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh Registry
@@ -92,15 +89,15 @@ export default function AllDocuments() {
           </div>
 
           {/* Search & Filter Toolbar */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-sm flex flex-col md:flex-row items-center gap-4">
+          <div className="bg-slate-900/90 border border-slate-700/60 rounded-2xl p-4 shadow-md flex flex-col md:flex-row items-center gap-4">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search by contract title or uploader email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 font-medium"
               />
             </div>
 
@@ -108,7 +105,7 @@ export default function AllDocuments() {
               <select
                 value={filterRisk}
                 onChange={(e) => setFilterRisk(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                className="px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
               >
                 <option value="ALL">All Risk Indices</option>
                 <option value="HIGH">High Risk (70-100)</option>
@@ -119,31 +116,31 @@ export default function AllDocuments() {
           </div>
 
           {/* Table */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+          <div className="bg-slate-900/90 border border-slate-700/60 rounded-2xl overflow-hidden shadow-md">
             {loading ? (
               <div className="py-20 flex justify-center">
                 <LoadingSpinner />
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16 px-4">
-                <FileText className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                <h3 className="text-sm font-semibold text-white">No contracts found</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-white">No contracts found</h3>
+                <p className="text-xs text-slate-300 mt-1">
                   Adjust your search or risk filter.
                 </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400">
+                  <thead className="bg-slate-950 border-b border-slate-800 text-slate-300 font-bold">
                     <tr>
-                      <th className="py-3.5 px-4 font-medium">Contract Title</th>
-                      <th className="py-3.5 px-4 font-medium">Uploader</th>
-                      <th className="py-3.5 px-4 font-medium">Category</th>
-                      <th className="py-3.5 px-4 font-medium">Risk Score</th>
-                      <th className="py-3.5 px-4 font-medium">Status</th>
-                      <th className="py-3.5 px-4 font-medium">Uploaded Date</th>
-                      <th className="py-3.5 px-4 font-medium text-right">Actions</th>
+                      <th className="py-3.5 px-4 font-semibold">Contract Title</th>
+                      <th className="py-3.5 px-4 font-semibold">Uploader</th>
+                      <th className="py-3.5 px-4 font-semibold">Category</th>
+                      <th className="py-3.5 px-4 font-semibold">Risk Score</th>
+                      <th className="py-3.5 px-4 font-semibold">Status</th>
+                      <th className="py-3.5 px-4 font-semibold">Uploaded Date</th>
+                      <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
@@ -153,7 +150,7 @@ export default function AllDocuments() {
                           {doc.title || doc.originalFileName}
                         </td>
                         <td className="py-3.5 px-4 text-slate-400 font-mono text-[11px]">
-                          {doc.userEmail || doc.uploadedBy || 'user@legalease.com'}
+                          {doc.userEmail || doc.uploadedBy || 'user@example.com'}
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-300">
@@ -166,7 +163,7 @@ export default function AllDocuments() {
                             : 'Pending'}
                         </td>
                         <td className="py-3.5 px-4">
-                          <RiskBadge risk={doc.status} />
+                          <RiskBadge level={doc.riskLevel} score={doc.overallRiskScore ?? doc.riskScore} />
                         </td>
                         <td className="py-3.5 px-4 text-slate-400">
                           {formatDate(doc.createdAt)}
@@ -194,8 +191,7 @@ export default function AllDocuments() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

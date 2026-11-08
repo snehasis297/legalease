@@ -42,5 +42,9 @@ data/
 *.mv.db
 *.trace.db
 
+# Local verification & scratch scripts
+test_*.js
+verify_*.js
+
 # Maven Wrapper temporary files
 .mvn/wrapper/maven-wrapper.jar

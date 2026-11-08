@@ -8,8 +8,7 @@ import {
   Laptop, 
   Clock 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import adminService from '../../services/adminService';
 import { formatDate } from '../../utils/formatters';
@@ -24,9 +23,11 @@ export default function AuditLogs() {
     try {
       setLoading(true);
       const res = await adminService.getAuditLogs({ page: 0, size: 50 });
-      setLogs(res.data?.content || res.data || []);
+      const logList = res.data?.data?.content || res.data?.content || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setLogs(Array.isArray(logList) ? logList : []);
     } catch (err) {
       console.error('Failed to load audit logs:', err);
+      setLogs([]);
     } finally {
       setLoading(false);
     }
@@ -36,7 +37,8 @@ export default function AuditLogs() {
     fetchLogs();
   }, []);
 
-  const filtered = logs.filter((log) => {
+  const logList = Array.isArray(logs) ? logs : [];
+  const filtered = logList.filter((log) => {
     const query = search.toLowerCase();
     const matchesSearch =
       (log.action || '').toLowerCase().includes(query) ||
@@ -48,24 +50,19 @@ export default function AuditLogs() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="Audit Trail">
+      <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Immutable Security Audit Logs</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">Immutable Security Audit Logs</h1>
+              <p className="text-xs text-slate-300 mt-1">
                 Tamper-evident forensic record of all administrative actions, authentications, and data modifications.
               </p>
             </div>
 
             <button
               onClick={fetchLogs}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition inline-flex items-center gap-2 text-xs"
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold transition inline-flex items-center gap-2 text-xs shadow-sm"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh Stream
@@ -73,15 +70,15 @@ export default function AuditLogs() {
           </div>
 
           {/* Search & Filter */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-sm flex flex-col md:flex-row items-center gap-4">
+          <div className="bg-slate-900/90 border border-slate-700/60 rounded-2xl p-4 shadow-md flex flex-col md:flex-row items-center gap-4">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search audit trail by actor, action, IP or details..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 font-medium"
               />
             </div>
 
@@ -89,7 +86,7 @@ export default function AuditLogs() {
               <select
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                className="px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
               >
                 <option value="ALL">All Event Types</option>
                 <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
@@ -103,7 +100,7 @@ export default function AuditLogs() {
           </div>
 
           {/* Table */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+          <div className="bg-slate-900/90 border border-slate-700/60 rounded-2xl overflow-hidden shadow-md">
             {loading ? (
               <div className="py-20 flex justify-center">
                 <LoadingSpinner />
@@ -119,13 +116,13 @@ export default function AuditLogs() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-mono">
+                  <thead className="bg-slate-950 border-b border-slate-800 text-slate-300 font-mono font-bold">
                     <tr>
-                      <th className="py-3.5 px-4 font-medium">Timestamp (UTC)</th>
-                      <th className="py-3.5 px-4 font-medium">Action Event</th>
-                      <th className="py-3.5 px-4 font-medium">Actor</th>
-                      <th className="py-3.5 px-4 font-medium">Client IP</th>
-                      <th className="py-3.5 px-4 font-medium">Details</th>
+                      <th className="py-3.5 px-4 font-semibold">Timestamp (UTC)</th>
+                      <th className="py-3.5 px-4 font-semibold">Action Event</th>
+                      <th className="py-3.5 px-4 font-semibold">Actor</th>
+                      <th className="py-3.5 px-4 font-semibold">Client IP</th>
+                      <th className="py-3.5 px-4 font-semibold">Details</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300 font-mono text-[11px]">
@@ -155,8 +152,7 @@ export default function AuditLogs() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

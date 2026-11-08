@@ -34,14 +34,18 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${appeal.docs-dir:appeal-docs/}")
     private String appealDocsDir;
 
+    private final javax.sql.DataSource dataSource;
+
     public DataInitializer(UserRepository userRepository,
                            LawyerProfileRepository lawyerProfileRepository,
                            PasswordEncoder passwordEncoder,
-                           com.legalease.repository.IpBlacklistRepository ipBlacklistRepository) {
+                           com.legalease.repository.IpBlacklistRepository ipBlacklistRepository,
+                           javax.sql.DataSource dataSource) {
         this.userRepository = userRepository;
         this.lawyerProfileRepository = lawyerProfileRepository;
         this.passwordEncoder = passwordEncoder;
         this.ipBlacklistRepository = ipBlacklistRepository;
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -51,6 +55,30 @@ public class DataInitializer implements CommandLineRunner {
         createDirectory(verifyDocsDir);
         createDirectory(appealDocsDir);
 
+        // Ensure database accepts AADHAAR for government_id_type
+        try (java.sql.Connection conn = dataSource.getConnection();
+             java.sql.Statement stmt = conn.createStatement()) {
+            try {
+                stmt.execute("ALTER TABLE users ALTER COLUMN government_id_type VARCHAR(50)");
+            } catch (Exception ignored) {}
+            try {
+                java.sql.ResultSet rs = stmt.executeQuery(
+                    "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME='USERS' AND CONSTRAINT_TYPE='CHECK'"
+                );
+                java.util.List<String> toDrop = new java.util.ArrayList<>();
+                while (rs.next()) {
+                    toDrop.add(rs.getString(1));
+                }
+                for (String cName : toDrop) {
+                    try {
+                        stmt.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS " + cName);
+                    } catch (Exception ignored) {}
+                }
+            } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("Database constraint update note: {}", e.getMessage());
+        }
+
         // Ensure localhost is never blocked
         try {
             ipBlacklistRepository.deleteByIpAddress("127.0.0.1");
@@ -59,7 +87,26 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception ignored) {
         }
 
-        // 1. Seed Default Admin
+        // 1. Seed Default System Admin (legalease.systemsupport@gmail.com)
+        String systemAdminEmail = "legalease.systemsupport@gmail.com";
+        if (!userRepository.existsByEmail(systemAdminEmail)) {
+            User admin = new User();
+            admin.setFullName("LegalEase System Administrator");
+            admin.setEmail(systemAdminEmail);
+            admin.setPasswordHash(passwordEncoder.encode("Admin@123456"));
+            admin.setPhoneNumber("9999999999");
+            admin.setRole(User.Role.ADMIN);
+            admin.setAccountStatus(User.AccountStatus.ACTIVE);
+            admin.setIsEmailVerified(true);
+            admin.setIsPhoneVerified(true);
+            admin.setIsIdVerified(true);
+            admin.setGovernmentIdType(User.GovernmentIdType.PAN);
+            admin.setGovernmentIdHash(AesEncryptionUtil.sha256Hex("ADMIN9999A"));
+            admin.setCreatedAt(LocalDateTime.now());
+            userRepository.save(admin);
+            log.info("System Admin account seeded: {} / Admin@123456", systemAdminEmail);
+        }
+
         if (!userRepository.existsByEmail("admin@legalease.com")) {
             User admin = new User();
             admin.setFullName("LegalEase Administrator");
@@ -130,6 +177,45 @@ public class DataInitializer implements CommandLineRunner {
             client.setCreatedAt(LocalDateTime.now());
             userRepository.save(client);
             log.info("Sample Client account seeded: client@legalease.com / Client@123456");
+        }
+
+        // 4. Seed Sample Pending Lawyer for Verification Queue testing
+        if (!userRepository.existsByEmail("pendinglawyer@legalease.com")) {
+            User pLawyer = new User();
+            pLawyer.setFullName("Advocate Rajesh Sharma");
+            pLawyer.setEmail("pendinglawyer@legalease.com");
+            pLawyer.setPasswordHash(passwordEncoder.encode("Lawyer@123456"));
+            pLawyer.setPhoneNumber("9811223344");
+            pLawyer.setRole(User.Role.LAWYER);
+            pLawyer.setAccountStatus(User.AccountStatus.PENDING_VERIFICATION);
+            pLawyer.setIsEmailVerified(true);
+            pLawyer.setIsPhoneVerified(true);
+            pLawyer.setIsIdVerified(true);
+            pLawyer.setGovernmentIdType(User.GovernmentIdType.PAN);
+            pLawyer.setGovernmentIdHash(AesEncryptionUtil.sha256Hex("RAJSH1234K"));
+            pLawyer.setCreatedAt(LocalDateTime.now().minusDays(1));
+            User savedPLawyer = userRepository.save(pLawyer);
+
+            LawyerProfile pProfile = new LawyerProfile(savedPLawyer);
+            pProfile.setBarCouncilId("BAR/DL/2019/5512");
+            pProfile.setBarCouncilIdHash(AesEncryptionUtil.sha256Hex("BAR/DL/2019/5512"));
+            pProfile.setBarCouncilState("Delhi");
+            pProfile.setYearsOfExperience(5);
+            pProfile.setSpecialization("Corporate & Commercial Arbitration");
+            pProfile.setVerificationStatus(LawyerProfile.VerificationStatus.PENDING);
+            lawyerProfileRepository.save(pProfile);
+            log.info("Sample Pending Lawyer seeded: pendinglawyer@legalease.com (Queue testing)");
+        }
+
+        // 5. Seed Sample IP Blacklist entry if empty
+        if (ipBlacklistRepository.count() == 0) {
+            com.legalease.entity.IpBlacklist banned = new com.legalease.entity.IpBlacklist();
+            banned.setIpAddress("198.51.100.44");
+            banned.setReason("Automated Brute-Force Probing Attempt");
+            banned.setIsPermanent(false);
+            banned.setBlockedUntil(LocalDateTime.now().plusDays(7));
+            banned.setBlockedAt(LocalDateTime.now().minusHours(2));
+            ipBlacklistRepository.save(banned);
         }
     }
 

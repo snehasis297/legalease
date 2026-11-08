@@ -9,8 +9,7 @@ import {
   FileText,
   ShieldCheck
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import lawyerService from '../../services/lawyerService';
 
 const PRACTICE_AREAS = [
@@ -75,14 +74,8 @@ export default function KycUpload() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10">
-          <div className="max-w-3xl mx-auto space-y-6">
+    <DashboardLayout portalType="lawyer" title="Bar License Upload">
+      <div className="max-w-3xl mx-auto space-y-6">
             <button
               onClick={() => navigate('/lawyer/dashboard')}
               className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition"
@@ -219,8 +212,6 @@ export default function KycUpload() {
               </div>
             </form>
           </div>
-        </main>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }

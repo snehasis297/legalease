@@ -3,85 +3,179 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-background text-textPrimary;
+  html {
+    scroll-behavior: smooth;
     overflow-x: hidden;
+    overflow-y: auto !important;
+  }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.08), transparent 30%),
+      radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.07), transparent 35%),
+      radial-gradient(circle at 50% 80%, rgba(99, 102, 241, 0.05), transparent 40%),
+      #F8FAFC;
+    background-attachment: fixed;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    color: #0F172A;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-/* Glassmorphism custom classes */
-.glass {
-  background: rgba(26, 26, 46, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(83, 74, 183, 0.25);
+/* Legal-tech executive backgrounds - High-contrast Dark Default */
+body,
+#root,
+.dashboard,
+.site-animated-bg {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.12), transparent 30%),
+    radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.10), transparent 35%),
+    radial-gradient(circle at 50% 80%, rgba(99, 102, 241, 0.08), transparent 40%),
+    #0B0F19 !important;
+  background-attachment: fixed !important;
+  color: #F8FAFC !important;
 }
 
-.glass-card {
-  background: rgba(26, 26, 46, 0.85);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
+html.dark body,
+html.dark #root,
+html.dark .dashboard,
+html.dark .site-animated-bg {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.12), transparent 30%),
+    radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.10), transparent 35%),
+    radial-gradient(circle at 50% 80%, rgba(99, 102, 241, 0.08), transparent 40%),
+    #0B0F19 !important;
+  background-attachment: fixed !important;
+  color: #F8FAFC !important;
 }
 
-.glass-dropdown {
-  background: rgba(15, 15, 26, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(83, 74, 183, 0.3);
-}
-
-/* Light Theme Overrides */
-html.light body {
-  background-color: #F8FAFC !important;
+html.light body,
+html.light #root,
+html.light .dashboard,
+html.light .site-animated-bg {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.08), transparent 30%),
+    radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.07), transparent 35%),
+    radial-gradient(circle at 50% 80%, rgba(99, 102, 241, 0.05), transparent 40%),
+    #F8FAFC !important;
+  background-attachment: fixed !important;
   color: #0F172A !important;
 }
 
-html.light .glass {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border-color: rgba(99, 102, 241, 0.2) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+/* Crisp, high-contrast elevated cards */
+.card,
+.glass,
+.glass-card {
+  padding: 1.5rem !important;
+  background: rgba(17, 24, 39, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(51, 65, 85, 0.75) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35) !important;
+  color: #F8FAFC !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box !important;
 }
 
+html.dark .card,
+html.dark .glass,
+html.dark .glass-card {
+  padding: 1.5rem !important;
+  background: rgba(17, 24, 39, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(51, 65, 85, 0.75) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35) !important;
+  color: #F8FAFC !important;
+  box-sizing: border-box !important;
+}
+
+html.light .card,
+html.light .glass,
 html.light .glass-card {
+  padding: 1.5rem !important;
   background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(226, 232, 240, 1) !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+  color: #0F172A !important;
+}
+
+.glass-dropdown {
+  background: rgba(15, 23, 42, 0.98) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(51, 65, 85, 0.8) !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5) !important;
 }
 
 html.light .glass-dropdown {
   background: rgba(255, 255, 255, 0.98) !important;
-  border-color: rgba(203, 213, 225, 0.8) !important;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(203, 213, 225, 0.85) !important;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.1) !important;
 }
 
-html.light [class*="bg-["],
-html.light .bg-slate-950 {
-  background-color: #F1F5F9 !important;
+/* Explicit high-contrast white text - NEVER turn dark inside dark containers */
+.text-white {
+  color: #FFFFFF !important;
 }
 
-html.light .bg-slate-900,
-html.light .bg-card {
-  background-color: #FFFFFF !important;
+.text-slate-100 {
+  color: #F1F5F9 !important;
 }
 
-html.light .border-slate-800,
-html.light [class*="border-white"] {
-  border-color: #E2E8F0 !important;
+.text-slate-200 {
+  color: #E2E8F0 !important;
 }
 
-html.light .text-textSecondary,
-html.light .text-slate-400 {
-  color: #475569 !important;
+.text-slate-300 {
+  color: #CBD5E1 !important;
 }
 
-html.light .text-white {
-  color: #0F172A !important;
+.text-slate-400 {
+  color: #94A3B8 !important;
 }
 
-html.light .text-slate-200,
-html.light .text-slate-300 {
-  color: #1E293B !important;
+.text-textSecondary {
+  color: #94A3B8 !important;
+}
+
+.text-textPrimary {
+  color: #FFFFFF !important;
+}
+
+/* Ensure buttons and badges retain high contrast */
+button[class*="bg-indigo"],
+button[class*="bg-primary"],
+a[class*="bg-indigo"],
+a[class*="bg-primary"],
+.btn-primary,
+[class*="bg-emerald-600"],
+[class*="bg-rose-600"],
+[class*="bg-purple-600"],
+[class*="bg-blue-600"] {
+  color: #FFFFFF !important;
+}
+
+button[class*="bg-indigo"] *,
+button[class*="bg-primary"] *,
+a[class*="bg-indigo"] *,
+a[class*="bg-primary"] *,
+.btn-primary *,
+[class*="bg-emerald-600"] *,
+[class*="bg-rose-600"] *,
+[class*="bg-purple-600"] *,
+[class*="bg-blue-600"] * {
+  color: #FFFFFF !important;
 }
 
 /* Custom scrollbar */
@@ -101,4 +195,38 @@ html.light ::-webkit-scrollbar-track {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #00D4FF;
+}
+
+/* Universal Overflow Prevention & Responsive Layout Guarantees */
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure all cards, boxes, and text containers strictly contain their text */
+.card,
+.glass,
+.glass-card,
+[class*="rounded-xl"],
+[class*="rounded-2xl"],
+p,
+span,
+h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Fix table container responsiveness so tables scroll cleanly on mobile */
+.overflow-x-auto {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure inputs and buttons never overflow their flex/grid parents */
+input, select, textarea {
+  max-width: 100%;
 }

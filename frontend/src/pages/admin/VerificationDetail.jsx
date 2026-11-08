@@ -10,8 +10,7 @@ import {
   Download, 
   ShieldCheck 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Modal from '../../components/common/Modal';
 import adminService from '../../services/adminService';
@@ -30,11 +29,22 @@ export default function VerificationDetail() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [processing, setProcessing] = useState(false);
 
+  const [documents, setDocuments] = useState([]);
+
   const loadVerification = async () => {
     try {
       setLoading(true);
       const res = await adminService.getVerification(id);
-      setVerification(res.data);
+      const data = res.data?.data || res.data;
+      setVerification(data);
+
+      try {
+        const docRes = await adminService.getLawyerDocuments(id);
+        const docList = docRes.data?.data || docRes.data;
+        if (Array.isArray(docList)) setDocuments(docList);
+      } catch (docErr) {
+        // Document fetch is supplementary
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load verification details.');
     } finally {
@@ -77,13 +87,8 @@ export default function VerificationDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="Verification Detail">
+      <div className="space-y-6">
           <button
             onClick={() => navigate('/admin/verifications')}
             className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition"
@@ -193,33 +198,55 @@ export default function VerificationDetail() {
                 </div>
 
                 <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm space-y-4">
-                  <h2 className="text-sm font-semibold text-white">Certificate Document</h2>
+                  <h2 className="text-sm font-semibold text-white">Verification Documents ({documents.length > 0 ? documents.length : 1})</h2>
 
-                  <div className="p-6 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col items-center text-center space-y-3">
-                    <FileText className="w-12 h-12 text-indigo-400" />
-                    <div>
-                      <p className="text-xs font-semibold text-white">
-                        {verification.documentName || 'Bar_License_Certificate.pdf'}
-                      </p>
-                      <span className="text-[11px] text-slate-400">Stored in encrypted vault</span>
+                  {documents.length > 0 ? (
+                    <div className="space-y-3">
+                      {documents.map((doc, idx) => (
+                        <div key={idx} className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <FileText className="w-6 h-6 text-indigo-400 shrink-0" />
+                            <div>
+                              <p className="text-xs font-semibold text-white">
+                                {doc.documentType || 'VERIFICATION_DOC'}
+                              </p>
+                              <span className="text-[10px] text-slate-400 font-mono block">
+                                {doc.fileName || 'Encrypted File'}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            AES-256-GCM
+                          </span>
+                        </div>
+                      ))}
                     </div>
+                  ) : (
+                    <div className="p-6 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col items-center text-center space-y-3">
+                      <FileText className="w-12 h-12 text-indigo-400" />
+                      <div>
+                        <p className="text-xs font-semibold text-white">
+                          {verification.documentName || 'Bar_License_Certificate.pdf'}
+                        </p>
+                        <span className="text-[11px] text-slate-400">Stored in encrypted vault</span>
+                      </div>
 
-                    <a
-                      href={verification.documentUrl || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Download & Inspect Document
-                    </a>
-                  </div>
+                      <a
+                        href={verification.documentUrl || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download &amp; Inspect Document
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           ) : null}
-        </main>
-      </div>
+        </div>
 
       {/* Reject Modal */}
       {showRejectModal && (
@@ -263,6 +290,6 @@ export default function VerificationDetail() {
           </div>
         </Modal>
       )}
-    </div>
+    </DashboardLayout>
   );
 }

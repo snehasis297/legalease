@@ -12,8 +12,7 @@ import {
   Eye, 
   RefreshCw 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Modal from '../../components/common/Modal';
 import adminService from '../../services/adminService';
@@ -31,14 +30,19 @@ export default function UserManagement() {
   const [actionModal, setActionModal] = useState(null); // { type: 'SUSPEND'|'DISABLE'|'UNLOCK', user }
   const [actionReason, setActionReason] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [fetchError, setFetchError] = useState('');
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setFetchError('');
       const res = await adminService.getAllUsers({ page: 0, size: 50 });
-      setUsers(res.data?.content || res.data || []);
+      const userList = res.data?.data?.content || res.data?.content || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setUsers(Array.isArray(userList) ? userList : []);
     } catch (err) {
       console.error('Failed to fetch users:', err);
+      setFetchError(err.response?.data?.message || err.message || 'Failed to connect to backend server. Please check your admin session.');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -46,6 +50,11 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
+    // Real-time polling every 12 seconds to reflect status changes, newly registered users, and lockouts
+    const interval = setInterval(() => {
+      fetchUsers();
+    }, 12000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleExecuteAction = async () => {
@@ -70,35 +79,31 @@ export default function UserManagement() {
     }
   };
 
-  const filtered = users.filter((u) => {
+  const userList = Array.isArray(users) ? users : [];
+  const filtered = userList.filter((u) => {
     const query = search.toLowerCase();
     const matchesQuery =
       (u.fullName || '').toLowerCase().includes(query) ||
       (u.email || '').toLowerCase().includes(query);
-    const matchesRole = filterRole === 'ALL' || u.role === filterRole;
-    const matchesStatus = filterStatus === 'ALL' || u.status === filterStatus;
+    const matchesRole = filterRole === 'ALL' || (u.role || '').toUpperCase() === filterRole;
+    const matchesStatus = filterStatus === 'ALL' || (u.status || u.accountStatus || '').toUpperCase() === filterStatus;
     return matchesQuery && matchesRole && matchesStatus;
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="User Directory">
+      <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">User Access & Identity Directory</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">User Access &amp; Identity Directory</h1>
+              <p className="text-xs text-slate-300 mt-1">
                 Oversee platform accounts, toggle security states, and inspect multi-factor postures.
               </p>
             </div>
 
             <button
               onClick={fetchUsers}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition inline-flex items-center gap-2 text-xs"
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold transition inline-flex items-center gap-2 text-xs shadow-sm"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh Directory
@@ -106,15 +111,15 @@ export default function UserManagement() {
           </div>
 
           {/* Search & Filter Bar */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-sm flex flex-col md:flex-row items-center gap-4">
+          <div className="bg-slate-900/90 border border-slate-700/60 rounded-2xl p-4 shadow-md flex flex-col md:flex-row items-center gap-4">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search by user name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 font-medium"
               />
             </div>
 
@@ -122,7 +127,7 @@ export default function UserManagement() {
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                className="px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
               >
                 <option value="ALL">All Roles</option>
                 <option value="CLIENT">Clients</option>
@@ -133,10 +138,12 @@ export default function UserManagement() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                className="px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">Active</option>
+                <option value="PENDING_VERIFICATION">Pending Verification</option>
+                <option value="PENDING_KYC">Pending KYC</option>
                 <option value="LOCKED">Locked</option>
                 <option value="SUSPENDED">Suspended</option>
                 <option value="DISABLED">Disabled</option>
@@ -145,113 +152,143 @@ export default function UserManagement() {
           </div>
 
           {/* User Table */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+          <div className="bg-slate-900/90 border border-slate-700/60 rounded-2xl overflow-hidden shadow-md">
             {loading ? (
               <div className="py-20 flex justify-center">
                 <LoadingSpinner />
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16 px-4">
-                <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                <h3 className="text-sm font-semibold text-white">No users found</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-white">No users found</h3>
+                <p className="text-xs text-slate-300 mt-1">
                   Adjust your search parameters or role filter.
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400">
+              <div className="overflow-x-auto min-w-full">
+                <table className="w-full min-w-[700px] text-left text-xs">
+                  <thead className="bg-slate-950 border-b border-slate-800 text-slate-300 font-bold">
                     <tr>
-                      <th className="py-3.5 px-4 font-medium">User Profile</th>
-                      <th className="py-3.5 px-4 font-medium">Role</th>
-                      <th className="py-3.5 px-4 font-medium">Status</th>
-                      <th className="py-3.5 px-4 font-medium">Phone (Masked)</th>
-                      <th className="py-3.5 px-4 font-medium">Joined</th>
-                      <th className="py-3.5 px-4 font-medium text-right">Actions</th>
+                      <th className="py-3.5 px-4 font-semibold">User Profile</th>
+                      <th className="py-3.5 px-4 font-semibold">Role</th>
+                      <th className="py-3.5 px-4 font-semibold">Status</th>
+                      <th className="py-3.5 px-4 font-semibold">Phone (Masked)</th>
+                      <th className="py-3.5 px-4 font-semibold">Joined</th>
+                      <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                    {filtered.map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-800/30 transition">
-                        <td className="py-3.5 px-4">
-                          <div>
-                            <span className="font-medium text-white block">{u.fullName || 'User'}</span>
-                            <span className="text-[11px] text-slate-400">{u.email}</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                            {u.role}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                              u.status === 'ACTIVE'
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : u.status === 'LOCKED'
-                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                            }`}
-                          >
-                            {u.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono text-slate-400">
-                          {u.maskedPhone || '****0000'}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-400">
-                          {formatDate(u.createdAt)}
-                        </td>
-                        <td className="py-3.5 px-4 text-right space-x-1.5">
-                          <button
-                            onClick={() => navigate(`/admin/users/${u.id}`)}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-white transition"
-                            title="Inspect Profile"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
+                    {filtered.map((u) => {
+                      const raw = (u.accountStatus || u.status || (u.isEnabled === false ? 'DISABLED' : 'ACTIVE') || 'ACTIVE').toString().trim().toUpperCase();
+                      const status = raw || 'ACTIVE';
+                      const role = (u.role || 'CLIENT').toString().trim().toUpperCase();
+                      const maskedPhone = u.maskedPhone || (u.phoneNumber ? u.phoneNumber.replace(/\d(?=\d{4})/g, '*') : '****0000');
+                      
+                      const isAct = status === 'ACTIVE';
+                      const isLock = status === 'LOCKED';
+                      const isPend = status.includes('PEND');
+                      const isSusp = status === 'SUSPENDED';
 
-                          {u.status === 'LOCKED' && (
-                            <button
-                              onClick={() => setActionModal({ type: 'UNLOCK', user: u })}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-500/20 text-emerald-400 transition"
-                              title="Unlock Account"
-                            >
-                              <Unlock className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                      const badgeClass = isAct
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        : isLock
+                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                        : isPend
+                        ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                        : isSusp
+                        ? 'bg-orange-500/15 text-orange-400 border-orange-500/30'
+                        : 'bg-rose-500/15 text-rose-400 border-rose-500/30';
 
-                          {u.status !== 'SUSPENDED' && (
-                            <button
-                              onClick={() => setActionModal({ type: 'SUSPEND', user: u })}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-amber-400 transition"
-                              title="Suspend Account"
-                            >
-                              <Lock className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                      const dotClass = isAct
+                        ? 'bg-emerald-400'
+                        : isLock
+                        ? 'bg-amber-400'
+                        : isPend
+                        ? 'bg-sky-400'
+                        : isSusp
+                        ? 'bg-orange-400'
+                        : 'bg-rose-400';
 
-                          {u.status !== 'DISABLED' && (
+                      return (
+                        <tr key={u.id} className="hover:bg-slate-800/30 transition">
+                          <td className="py-3.5 px-4">
+                            <div>
+                              <span className="font-medium text-white block">{u.fullName || 'User'}</span>
+                              <span className="text-[11px] text-slate-400 font-mono">{u.email}</span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium border ${
+                              role === 'ADMIN'
+                                ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+                                : role === 'LAWYER'
+                                ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                                : 'bg-slate-800 text-slate-300 border-slate-700'
+                            }`}>
+                              {role}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${badgeClass}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotClass}`} />
+                              <span>{status}</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-slate-300">
+                            {maskedPhone}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-400 whitespace-nowrap">
+                            {formatDate(u.createdAt)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                             <button
-                              onClick={() => setActionModal({ type: 'DISABLE', user: u })}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 transition"
-                              title="Disable Account (Auto-generate appeal token)"
+                              onClick={() => navigate(`/admin/users/${u.id}`)}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-white transition cursor-pointer"
+                              title="Inspect Profile"
                             >
-                              <Ban className="w-3.5 h-3.5" />
+                              <Eye className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+
+                            {status === 'LOCKED' && (
+                              <button
+                                onClick={() => setActionModal({ type: 'UNLOCK', user: u })}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-500/20 text-emerald-400 transition cursor-pointer"
+                                title="Unlock Account"
+                              >
+                                <Unlock className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {status !== 'SUSPENDED' && (
+                              <button
+                                onClick={() => setActionModal({ type: 'SUSPEND', user: u })}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-amber-400 transition cursor-pointer"
+                                title="Suspend Account"
+                              >
+                                <Lock className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {status !== 'DISABLED' && (
+                              <button
+                                onClick={() => setActionModal({ type: 'DISABLE', user: u })}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+                                title="Disable Account (Auto-generate appeal token)"
+                              >
+                                <Ban className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
           </div>
-        </main>
-      </div>
+        </div>
 
       {/* Action Modal */}
       {actionModal && (
@@ -301,6 +338,6 @@ export default function UserManagement() {
           </div>
         </Modal>
       )}
-    </div>
+    </DashboardLayout>
   );
 }

@@ -21,7 +21,7 @@ export const StatsSection = () => {
       id="stats"
       ref={ref}
       onClick={() => setActiveSection('stats')}
-      className={`py-20 relative transition-all duration-500 cursor-pointer ${
+      className={`py-20 scroll-mt-24 relative transition-all duration-300 ${
         isActive
           ? 'bg-gradient-to-r from-cyan-950/60 via-cyan-900/40 to-cyan-950/60 border-y-2 border-cyan-400 shadow-[0_0_80px_rgba(6,182,212,0.2)]'
           : 'bg-gradient-to-r from-primary/30 via-primary/50 to-primary/30 border-y border-primary/50'

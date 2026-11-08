@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import AnimatedBackground from './components/common/AnimatedBackground';
 
 // Public Pages
 import Landing from './pages/Landing';
@@ -13,6 +14,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import VerifyPhone from './pages/VerifyPhone';
 import SubmitKyc from './pages/SubmitKyc';
 import SetupTwoFactor from './pages/SetupTwoFactor';
+import SecurityControlsPage from './pages/SecurityControlsPage';
 
 // Security Status Pages
 import Disabled from './pages/Disabled';
@@ -54,7 +56,9 @@ import AppealDetail from './pages/admin/AppealDetail';
 
 export default function App() {
   return (
-    <Routes>
+    <div className="relative min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200">
+      <AnimatedBackground />
+      <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
@@ -66,11 +70,16 @@ export default function App() {
       <Route path="/verify-phone" element={<VerifyPhone />} />
       <Route path="/submit-kyc" element={<SubmitKyc />} />
       <Route path="/setup-2fa" element={<SetupTwoFactor />} />
+      <Route path="/security-controls" element={<SecurityControlsPage />} />
+      <Route path="/compliance" element={<SecurityControlsPage />} />
 
       {/* Account Safety State Routes */}
       <Route path="/account-disabled" element={<Disabled />} />
+      <Route path="/disabled" element={<Disabled />} />
       <Route path="/account-suspended" element={<Suspended />} />
+      <Route path="/suspended" element={<Suspended />} />
       <Route path="/account-locked" element={<Locked />} />
+      <Route path="/locked" element={<Locked />} />
       <Route path="/appeal" element={<Appeal />} />
       <Route path="/appeal-success" element={<AppealSuccess />} />
       <Route path="/appeal-expired" element={<AppealExpired />} />
@@ -144,6 +153,14 @@ export default function App() {
         }
       />
       <Route
+        path="/lawyer/documents"
+        element={
+          <ProtectedRoute allowedRoles={['LAWYER', 'ADMIN']}>
+            <DocumentList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/lawyer/kyc-upload"
         element={
           <ProtectedRoute allowedRoles={['LAWYER', 'ADMIN']}>
@@ -152,7 +169,23 @@ export default function App() {
         }
       />
       <Route
+        path="/lawyer/kyc/upload"
+        element={
+          <ProtectedRoute allowedRoles={['LAWYER', 'ADMIN']}>
+            <KycUpload />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/lawyer/kyc-status"
+        element={
+          <ProtectedRoute allowedRoles={['LAWYER', 'ADMIN']}>
+            <KycStatus />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lawyer/kyc/status"
         element={
           <ProtectedRoute allowedRoles={['LAWYER', 'ADMIN']}>
             <KycStatus />
@@ -210,7 +243,31 @@ export default function App() {
         }
       />
       <Route
+        path="/admin/verification-queue"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <VerificationQueue />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/verifications/:id"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <VerificationDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/verification/:id"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <VerificationDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/verification-queue/:id"
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <VerificationDetail />
@@ -242,10 +299,34 @@ export default function App() {
         }
       />
       <Route
+        path="/admin/threat-intel"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <SuspiciousActivities />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/blacklist"
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <IpBlacklist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/ip-blacklist"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <IpBlacklist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/setup-2fa"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <SetupTwoFactor />
           </ProtectedRoute>
         }
       />
@@ -269,5 +350,6 @@ export default function App() {
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </div>
   );
 }

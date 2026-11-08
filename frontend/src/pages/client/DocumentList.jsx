@@ -12,8 +12,7 @@ import {
   AlertTriangle,
   RefreshCw
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import RiskBadge from '../../components/analysis/RiskBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Modal from '../../components/common/Modal';
@@ -35,9 +34,11 @@ export default function DocumentList() {
     try {
       setLoading(true);
       const res = await documentService.getMyDocuments({ page: 0, size: 50 });
-      setDocuments(res.data?.content || res.data || []);
+      const dList = res.data?.data?.content || res.data?.content || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setDocuments(Array.isArray(dList) ? dList : []);
     } catch (err) {
       console.error('Failed to load documents:', err);
+      setDocuments([]);
     } finally {
       setLoading(false);
     }
@@ -52,7 +53,7 @@ export default function DocumentList() {
     try {
       setIsDeleting(true);
       await documentService.deleteDocument(deleteDocId);
-      setDocuments(documents.filter((d) => d.id !== deleteDocId));
+      setDocuments((Array.isArray(documents) ? documents : []).filter((d) => d.id !== deleteDocId));
       setDeleteDocId(null);
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete document.');
@@ -77,28 +78,25 @@ export default function DocumentList() {
   };
 
   // Filtered documents
-  const filtered = documents.filter((doc) => {
-    const titleMatch = (doc.title || doc.originalFileName || '').toLowerCase().includes(search.toLowerCase());
+  const docList = Array.isArray(documents) ? documents : [];
+  const filtered = docList.filter((doc) => {
+    const titleMatch = (doc.title || doc.originalFileName || doc.originalFilename || '').toLowerCase().includes(search.toLowerCase());
     const typeMatch = filterType === 'ALL' || doc.contractType === filterType;
     let riskMatch = true;
-    if (filterRisk === 'HIGH') riskMatch = (doc.overallRiskScore || 0) >= 70;
-    else if (filterRisk === 'MEDIUM') riskMatch = (doc.overallRiskScore || 0) >= 40 && (doc.overallRiskScore || 0) < 70;
-    else if (filterRisk === 'LOW') riskMatch = (doc.overallRiskScore || 0) < 40;
+    const score = doc.overallRiskScore ?? doc.riskScore ?? 0;
+    if (filterRisk === 'HIGH') riskMatch = score >= 70;
+    else if (filterRisk === 'MEDIUM') riskMatch = score >= 40 && score < 70;
+    else if (filterRisk === 'LOW') riskMatch = score < 40;
     return titleMatch && typeMatch && riskMatch;
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="client" title="My Documents">
+      <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Document Repository</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-2xl font-bold text-slate-900">Document Repository</h1>
+              <p className="text-xs text-slate-500 mt-1">
                 Manage, review, and query all encrypted contracts and risk assessments.
               </p>
             </div>
@@ -106,7 +104,7 @@ export default function DocumentList() {
             <div className="flex items-center gap-3">
               <button
                 onClick={fetchDocuments}
-                className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
+                className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 shadow-sm transition"
                 title="Refresh List"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -122,15 +120,15 @@ export default function DocumentList() {
           </div>
 
           {/* Search & Filter Toolbar */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-sm flex flex-col md:flex-row items-center gap-4">
+          <div className="card p-4 flex flex-col md:flex-row items-center gap-4">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search documents by title or file name..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/90 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
@@ -199,8 +197,8 @@ export default function DocumentList() {
                         <td className="py-3.5 px-4 font-medium text-white max-w-xs truncate">
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-indigo-400 shrink-0" />
-                            <span title={doc.title || doc.originalFileName}>
-                              {doc.title || doc.originalFileName}
+                            <span title={doc.title || doc.originalFileName || doc.originalFilename}>
+                              {doc.title || doc.originalFileName || doc.originalFilename}
                             </span>
                           </div>
                         </td>
@@ -213,17 +211,17 @@ export default function DocumentList() {
                           {formatFileSize(doc.fileSize)}
                         </td>
                         <td className="py-3.5 px-4">
-                          <RiskBadge risk={doc.status} />
+                          <RiskBadge level={doc.riskLevel} score={doc.overallRiskScore ?? doc.riskScore} />
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="font-semibold text-slate-200">
-                            {doc.overallRiskScore !== undefined && doc.overallRiskScore !== null
-                              ? `${doc.overallRiskScore} / 100`
+                            {(doc.overallRiskScore !== undefined && doc.overallRiskScore !== null) || (doc.riskScore !== undefined && doc.riskScore !== null)
+                              ? `${doc.overallRiskScore ?? doc.riskScore} / 100`
                               : 'Pending'}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-slate-400">
-                          {formatDate(doc.createdAt)}
+                          {formatDate(doc.createdAt || doc.uploadTime)}
                         </td>
                         <td className="py-3.5 px-4 text-right space-x-1.5">
                           <button
@@ -241,7 +239,7 @@ export default function DocumentList() {
                             <MessageSquare className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDownload(doc.id, doc.originalFileName)}
+                            onClick={() => handleDownload(doc.id, doc.originalFileName || doc.originalFilename)}
                             className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-white transition"
                             title="Download Encrypted File"
                           >
@@ -262,8 +260,7 @@ export default function DocumentList() {
               </div>
             )}
           </div>
-        </main>
-      </div>
+        </div>
 
       {/* Delete Confirmation Modal */}
       {deleteDocId && (
@@ -295,6 +292,6 @@ export default function DocumentList() {
           </div>
         </Modal>
       )}
-    </div>
+    </DashboardLayout>
   );
 }

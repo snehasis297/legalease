@@ -23,9 +23,33 @@ export const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+
+      // Dynamic situational section tracking on the landing page
+      if (window.location.pathname === '/') {
+        const sections = ['how-it-works', 'live-demo', 'security', 'roles', 'stats'];
+        const scrollPosition = window.scrollY + 140;
+
+        for (let i = sections.length - 1; i >= 0; i--) {
+          const el = document.getElementById(sections[i]);
+          if (el && el.offsetTop <= scrollPosition) {
+            setActiveSection(sections[i]);
+            break;
+          }
+        }
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (window.location.hash) {
+      const targetId = window.location.hash.replace('#', '');
+      setTimeout(() => {
+        scrollToSection(targetId);
+      }, 200);
+    }
   }, []);
 
   const getDashboardPath = () => {
@@ -39,13 +63,46 @@ export const Navbar = () => {
     { id: 'how-it-works', label: 'How It Works', color: '#6366F1' },
     { id: 'live-demo', label: 'AI Redline', color: '#10B981' },
     { id: 'security', label: 'Security', color: '#F43F5E' },
+    { id: 'controls', label: 'Enterprise Controls', color: '#38BDF8', path: '/security-controls' },
     { id: 'roles', label: 'Personas', color: '#F59E0B' },
     { id: 'stats', label: 'Telemetry', color: '#06B6D4' },
   ];
 
-  const handleNavClick = (sectionId, e) => {
+  const scrollToSection = (id) => {
+    setActiveSection(id);
+    const elem = document.getElementById(id);
+    if (elem) {
+      const navHeight = 85;
+      const elementPosition = elem.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: Math.max(0, elementPosition - navHeight),
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const handleNavClick = (item, e) => {
     e.preventDefault();
-    setActiveSection(sectionId);
+    if (item.path) {
+      navigate(item.path);
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (window.location.pathname !== '/') {
+      navigate(`/#${item.id}`);
+      const tryScroll = (attempts = 0) => {
+        const elem = document.getElementById(item.id);
+        if (elem) {
+          scrollToSection(item.id);
+        } else if (attempts < 12) {
+          setTimeout(() => tryScroll(attempts + 1), 80);
+        }
+      };
+      setTimeout(() => tryScroll(0), 80);
+    } else {
+      scrollToSection(item.id);
+    }
     setMobileMenuOpen(false);
   };
 
@@ -78,14 +135,14 @@ export const Navbar = () => {
             return (
               <a
                 key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => handleNavClick(item.id, e)}
+                href={item.path || `#${item.id}`}
+                onClick={(e) => handleNavClick(item, e)}
                 style={{
                   color: isActive ? item.color : undefined,
                   borderColor: isActive ? `${item.color}50` : 'transparent',
                   backgroundColor: isActive ? `${item.color}15` : 'transparent',
                 }}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-200 border flex items-center gap-1.5 ${
+                className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-200 border flex items-center gap-1.5 cursor-pointer ${
                   isActive
                     ? 'shadow-sm'
                     : 'text-slate-400 hover:text-white dark:hover:text-white hover:bg-slate-800/40'
@@ -93,8 +150,8 @@ export const Navbar = () => {
               >
                 {isActive && (
                   <span
-                    className="w-1.5 h-1.5 rounded-full animate-ping"
-                    style={{ backgroundColor: item.color }}
+                    className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                    style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}` }}
                   />
                 )}
                 {item.label}
@@ -178,8 +235,8 @@ export const Navbar = () => {
           {navItems.map((item) => (
             <a
               key={item.id}
-              href={`#${item.id}`}
-              onClick={(e) => handleNavClick(item.id, e)}
+              href={item.path || `#${item.id}`}
+              onClick={(e) => handleNavClick(item, e)}
               className={`block text-xs font-medium py-2 px-3 rounded-lg transition ${
                 activeSection === item.id
                   ? 'bg-slate-800 text-white font-semibold'

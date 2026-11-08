@@ -15,11 +15,29 @@ import java.util.Optional;
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "assignedLawyer"})
     Page<Document> findByUser(User user, Pageable pageable);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "assignedLawyer"})
     Page<Document> findByUserId(Long userId, Pageable pageable);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "assignedLawyer"})
     Page<Document> findByAssignedLawyer(User assignedLawyer, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "assignedLawyer"})
+    @Query("SELECT d FROM Document d WHERE d.assignedLawyer = :lawyer OR d.assignedLawyer IS NULL")
+    Page<Document> findAssignedOrUnassignedForLawyer(@Param("lawyer") User lawyer, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "assignedLawyer"})
+    Page<Document> findByReviewStatus(String reviewStatus, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "assignedLawyer"})
+    @Override
+    Page<Document> findAll(Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "assignedLawyer"})
+    @Override
+    Optional<Document> findById(Long id);
 
     Optional<Document> findByIdAndUserId(Long id, Long userId);
 

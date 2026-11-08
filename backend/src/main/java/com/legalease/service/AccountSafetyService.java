@@ -117,7 +117,7 @@ public class AccountSafetyService {
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid appeal token"));
 
         if (appeal.getTokenExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new UnauthorizedException("This appeal link has expired. Please contact support@legalease.com.");
+            throw new UnauthorizedException("This appeal link has expired. Please contact legalease.systemsupport@gmail.com.");
         }
 
         if (appeal.getStatus() != AccountAppeal.AppealStatus.PENDING) {

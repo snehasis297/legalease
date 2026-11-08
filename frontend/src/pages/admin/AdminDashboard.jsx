@@ -13,8 +13,8 @@ import {
   Lock,
   RefreshCw
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import ContractAnalyticsSection from '../../components/dashboard/ContractAnalyticsSection';
 import StatsCard from '../../components/admin/StatsCard';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import adminService from '../../services/adminService';
@@ -29,29 +29,42 @@ export default function AdminDashboard() {
     openAppeals: 0,
   });
   const [recentActivities, setRecentActivities] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadAdminData = async () => {
     try {
       setLoading(true);
-      const [statsRes, threatsRes] = await Promise.all([
+      const [statsRes, threatsRes, docsRes] = await Promise.all([
         adminService.getDashboardStats().catch(() => ({ data: {} })),
         adminService.getSuspiciousActivities({ page: 0, size: 5 }).catch(() => ({ data: [] })),
+        adminService.getAllDocuments({ page: 0, size: 50 }).catch(() => ({ data: [] })),
       ]);
 
-      const data = statsRes.data || {};
+      const data = statsRes.data?.data || statsRes.data || {};
       setStats({
-        totalUsers: data.totalUsers || 24,
-        pendingVerifications: data.pendingVerifications || 3,
-        threatsDetected: data.threatsDetected || 7,
-        blacklistedIps: data.blacklistedIps || 2,
-        openAppeals: data.openAppeals || 1,
+        totalUsers: data.totalUsers ?? 24,
+        pendingVerifications: data.pendingVerifications ?? 3,
+        threatsDetected: data.threatsDetected ?? 7,
+        blacklistedIps: data.blacklistedIps ?? 2,
+        openAppeals: data.openAppeals ?? 1,
       });
 
-      const acts = threatsRes.data?.content || threatsRes.data || [];
-      setRecentActivities(acts);
+      const rawThreats = threatsRes.data?.data?.content 
+        || threatsRes.data?.content 
+        || threatsRes.data?.data 
+        || (Array.isArray(threatsRes.data) ? threatsRes.data : []);
+      setRecentActivities(Array.isArray(rawThreats) ? rawThreats : []);
+
+      const rawDocs = docsRes.data?.data?.content
+        || docsRes.data?.content
+        || docsRes.data?.data
+        || (Array.isArray(docsRes.data) ? docsRes.data : []);
+      setDocuments(Array.isArray(rawDocs) ? rawDocs : []);
     } catch (err) {
       console.error('Failed to load admin stats:', err);
+      setRecentActivities([]);
+      setDocuments([]);
     } finally {
       setLoading(false);
     }
@@ -62,38 +75,49 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  Root Security Command
-                </span>
-              </div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-white">
-                Platform Security Administration
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Live threat mitigation, Bar Council credential reviews, and cryptographic audit monitoring.
-              </p>
-            </div>
-
-            <button
-              onClick={loadAdminData}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition inline-flex items-center gap-2 text-xs"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh Telemetry
-            </button>
+    <DashboardLayout
+      portalType="admin"
+      title="Root Console"
+      badge="Root Security Command"
+      badgeIcon={ShieldAlert}
+      actionButton={
+        <button
+          onClick={loadAdminData}
+          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white transition inline-flex items-center gap-1.5 text-xs font-semibold shadow-sm"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Sync</span>
+        </button>
+      }
+    >
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-950/70 text-rose-300 border border-rose-700/60 flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              Root Security Command
+            </span>
           </div>
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
+            Platform Security Administration
+          </h1>
+          <p className="text-xs text-slate-300 mt-1">
+            Live threat mitigation, Bar Council credential reviews, and cryptographic audit monitoring.
+          </p>
+        </div>
+
+        <button
+          onClick={loadAdminData}
+          className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white transition inline-flex items-center gap-2 text-xs font-bold shadow-sm self-start md:self-auto"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh Telemetry
+        </button>
+      </div>
+
+      {/* Contract & Threat Analytics Section - Dynamic with Live Platform Data */}
+      <ContractAnalyticsSection documents={documents} onRefresh={loadAdminData} />
 
           {/* Stats Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -137,19 +161,19 @@ export default function AdminDashboard() {
           {/* Threat Log & Action Modules */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Real-time Threat Feed */}
-            <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm space-y-4">
+            <div className="lg:col-span-2 p-5 sm:p-6 rounded-2xl bg-slate-900/90 border border-slate-700/60 shadow-md space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Activity className="w-4 h-4 text-rose-400" />
                     Automated Threat Interceptions
                   </h2>
-                  <p className="text-xs text-slate-400">Triggered by 10-point heuristic security engine</p>
+                  <p className="text-xs text-slate-300">Triggered by 10-point heuristic security engine</p>
                 </div>
 
                 <Link
                   to="/admin/suspicious"
-                  className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
                 >
                   View All Log
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -160,32 +184,32 @@ export default function AdminDashboard() {
                 <div className="py-12 flex justify-center">
                   <LoadingSpinner />
                 </div>
-              ) : recentActivities.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
+              ) : (!Array.isArray(recentActivities) || recentActivities.length === 0) ? (
+                <div className="p-8 text-center text-slate-400 text-xs border border-dashed border-slate-800 rounded-xl">
                   No critical security anomalies detected in this monitoring window.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {recentActivities.slice(0, 5).map((threat, idx) => (
+                  {(Array.isArray(recentActivities) ? recentActivities.slice(0, 5) : []).map((threat, idx) => (
                     <div
                       key={threat.id || idx}
-                      className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between"
+                      className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 flex items-center justify-between transition-colors"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                            {threat.threatType || 'RATE_LIMIT_BREACH'}
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-950/70 text-rose-300 border border-rose-500/30">
+                            {threat.activityType || threat.threatType || 'ANOMALY_DETECTED'}
                           </span>
-                          <span className="text-xs text-white font-medium">
-                            {threat.description || 'Rapid brute-force requests detected'}
+                          <span className="text-xs text-white font-semibold">
+                            {threat.details || threat.description || 'Suspicious request pattern flagged'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 font-mono">
-                          IP: {threat.ipAddress || '198.51.100.24'} • User: {threat.userEmail || 'Anonymous'}
+                        <p className="text-[11px] text-slate-300 font-mono">
+                          IP: {threat.ipAddress || '127.0.0.1'} • User: {threat.userEmail || 'Anonymous'}
                         </p>
                       </div>
-                      <span className="text-[11px] text-slate-500">
-                        {formatDate(threat.createdAt || new Date().toISOString())}
+                      <span className="text-[11px] text-slate-300 font-mono">
+                        {formatDate(threat.detectedAt || threat.createdAt || new Date().toISOString())}
                       </span>
                     </div>
                   ))}
@@ -195,16 +219,16 @@ export default function AdminDashboard() {
 
             {/* Admin Quick Action Hub */}
             <div className="space-y-4">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm space-y-4">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <div className="p-5 sm:p-6 rounded-2xl bg-slate-900/90 border border-slate-700/60 shadow-md space-y-4">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Lock className="w-4 h-4 text-indigo-400" />
                   Quick Security Actions
                 </h3>
 
                 <div className="space-y-2.5">
                   <Link
-                    to="/admin/verifications"
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800 text-xs text-slate-200 transition"
+                    to="/admin/verification-queue"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-xs text-slate-200 transition font-semibold"
                   >
                     <span>Audit Lawyer Verification Queue</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
@@ -212,15 +236,15 @@ export default function AdminDashboard() {
 
                   <Link
                     to="/admin/users"
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800 text-xs text-slate-200 transition"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-xs text-slate-200 transition font-semibold"
                   >
                     <span>User Access & Role Directory</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
                   </Link>
 
                   <Link
-                    to="/admin/blacklist"
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800 text-xs text-slate-200 transition"
+                    to="/admin/ip-blacklist"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-xs text-slate-200 transition font-semibold"
                   >
                     <span>Manage Global IP Blacklist</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
@@ -228,7 +252,7 @@ export default function AdminDashboard() {
 
                   <Link
                     to="/admin/appeals"
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800 text-xs text-slate-200 transition"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-xs text-slate-200 transition font-semibold"
                   >
                     <span>Account Restoration Appeals</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
@@ -237,19 +261,17 @@ export default function AdminDashboard() {
               </div>
 
               {/* Engine Status */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/30 to-slate-900 border border-emerald-500/20 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 border border-emerald-500/30 space-y-2 shadow-md">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                   <CheckCircle2 className="w-4 h-4" />
                   All Threat Heuristics Operational
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-slate-200 leading-relaxed">
                   Redis sliding window, Magic bytes PDF/DOCX filters, and SHA-256 duplicate ID detection are active with 0 ms latency impact.
                 </p>
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }

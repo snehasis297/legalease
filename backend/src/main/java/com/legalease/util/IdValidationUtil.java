@@ -12,6 +12,7 @@ public class IdValidationUtil {
     private static final Pattern VOTER_ID_PATTERN = Pattern.compile("^[A-Z]{3}[0-9]{7}$");
     private static final Pattern PASSPORT_PATTERN = Pattern.compile("^[A-Z][0-9]{7}$");
     private static final Pattern DRIVING_LICENSE_PATTERN = Pattern.compile("^[A-Z]{2}[0-9]{2}[0-9]{11}$");
+    private static final Pattern AADHAAR_PATTERN = Pattern.compile("^[2-9]{1}[0-9]{3}\\s?[0-9]{4}\\s?[0-9]{4}$|^[2-9]{1}[0-9]{11}$");
 
     public boolean validateId(User.GovernmentIdType type, String idNumber) {
         if (type == null || idNumber == null) {
@@ -19,6 +20,8 @@ public class IdValidationUtil {
         }
         String cleanId = idNumber.trim().toUpperCase();
         switch (type) {
+            case AADHAAR:
+                return AADHAAR_PATTERN.matcher(cleanId).matches();
             case PAN:
                 return PAN_PATTERN.matcher(cleanId).matches();
             case VOTER_ID:

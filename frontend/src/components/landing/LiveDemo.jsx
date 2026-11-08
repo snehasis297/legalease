@@ -9,16 +9,29 @@ export const LiveDemo = () => {
   const { activeSection, setActiveSection } = useTheme();
 
   const isActive = activeSection === 'live-demo';
+  const animFrameRef = React.useRef(null);
 
   const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setRotateX(-y * 0.02);
-    setRotateY(x * 0.02);
+    if (animFrameRef.current) return;
+    const currentTarget = e.currentTarget;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    animFrameRef.current = requestAnimationFrame(() => {
+      const rect = currentTarget.getBoundingClientRect();
+      const x = clientX - rect.left - rect.width / 2;
+      const y = clientY - rect.top - rect.height / 2;
+      setRotateX(-y * 0.015);
+      setRotateY(x * 0.015);
+      animFrameRef.current = null;
+    });
   };
 
   const handleMouseLeave = () => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
     setRotateX(0);
     setRotateY(0);
   };
@@ -27,10 +40,10 @@ export const LiveDemo = () => {
     <section 
       id="live-demo" 
       onClick={() => setActiveSection('live-demo')}
-      className={`py-24 relative overflow-hidden transition-all duration-500 cursor-pointer ${
+      className={`py-24 scroll-mt-24 relative overflow-hidden transition-all duration-300 ${
         isActive 
-          ? 'bg-gradient-to-b from-emerald-950/40 via-background to-background ring-2 ring-emerald-500/40 shadow-[0_0_80px_rgba(16,185,129,0.15)]' 
-          : 'bg-background'
+          ? 'bg-emerald-500/10 backdrop-blur-md ring-2 ring-emerald-500/40 shadow-[0_0_80px_rgba(16,185,129,0.15)]' 
+          : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

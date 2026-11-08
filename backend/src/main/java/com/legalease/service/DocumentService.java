@@ -8,6 +8,7 @@ import com.legalease.entity.User;
 import com.legalease.exception.FileProcessingException;
 import com.legalease.exception.ResourceNotFoundException;
 import com.legalease.exception.UnauthorizedException;
+import org.springframework.security.access.AccessDeniedException;
 import com.legalease.repository.ClauseRepository;
 import com.legalease.repository.DocumentAnalysisRepository;
 import com.legalease.repository.DocumentRepository;
@@ -105,6 +106,8 @@ public class DocumentService {
                     file.getContentType(),
                     encryptedData.getBase64Iv()
             );
+            document.setReviewStatus("PENDING_REVIEW");
+            document.setFinalRiskStatus("PENDING_LAWYER");
             return documentRepository.save(document);
         } catch (Exception e) {
             log.error("File upload failed", e);
@@ -112,17 +115,19 @@ public class DocumentService {
         }
     }
 
+    @Transactional(readOnly = true)
     public byte[] downloadDecryptedDocument(Long documentId, User requestingUser) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + documentId));
 
         boolean isOwner = document.getUser().getId().equals(requestingUser.getId());
         boolean isAdmin = requestingUser.getRole() == User.Role.ADMIN;
+        boolean isLawyer = requestingUser.getRole() == User.Role.LAWYER;
         boolean isAssignedLawyer = document.getAssignedLawyer() != null &&
                 document.getAssignedLawyer().getId().equals(requestingUser.getId());
 
-        if (!isOwner && !isAdmin && !isAssignedLawyer) {
-            throw new UnauthorizedException("You do not have permission to access this document");
+        if (!isOwner && !isAdmin && !isAssignedLawyer && !isLawyer) {
+            throw new AccessDeniedException("You do not have permission to access this document");
         }
 
         try {
@@ -138,21 +143,24 @@ public class DocumentService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Page<DocumentResponse> getUserDocuments(User user, Pageable pageable) {
         return documentRepository.findByUser(user, pageable).map(this::mapToResponse);
     }
 
+    @Transactional(readOnly = true)
     public DocumentResponse getDocumentDetails(Long documentId, User requestingUser) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + documentId));
 
         boolean isOwner = document.getUser().getId().equals(requestingUser.getId());
         boolean isAdmin = requestingUser.getRole() == User.Role.ADMIN;
+        boolean isLawyer = requestingUser.getRole() == User.Role.LAWYER;
         boolean isAssignedLawyer = document.getAssignedLawyer() != null &&
                 document.getAssignedLawyer().getId().equals(requestingUser.getId());
 
-        if (!isOwner && !isAdmin && !isAssignedLawyer) {
-            throw new UnauthorizedException("You do not have access to this document");
+        if (!isOwner && !isAdmin && !isAssignedLawyer && !isLawyer) {
+            throw new AccessDeniedException("You do not have access to this document");
         }
 
         return mapToResponse(document);
@@ -200,6 +208,12 @@ public class DocumentService {
             resp.setAssignedLawyerName(doc.getAssignedLawyer().getFullName());
         }
         resp.setLawyerNotes(doc.getLawyerNotes());
+        resp.setLawyerRiskLevel(doc.getLawyerRiskLevel());
+        resp.setLawyerRecommendations(doc.getLawyerRecommendations());
+        resp.setLawyerReviewedAt(doc.getLawyerReviewedAt());
+        resp.setReviewStatus(doc.getReviewStatus() != null ? doc.getReviewStatus() : "PENDING_REVIEW");
+        resp.setFinalRiskStatus(doc.getFinalRiskStatus());
+        resp.setFinalRiskLabel(doc.getFinalRiskLabel());
 
         documentAnalysisRepository.findByDocumentId(doc.getId()).ifPresent(analysis -> {
             resp.setRiskScore(analysis.getRiskScore());

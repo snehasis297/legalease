@@ -10,33 +10,33 @@ export const adminService = {
   disableUser: (id, data) => api.post(`/admin/users/${id}/disable`, data),
   unlockUser: (id) => api.post(`/admin/users/${id}/unlock`),
   
-  getVerificationQueue: (params) => api.get('/admin/verifications', { params }),
-  getVerification: (id) => api.get(`/admin/verifications/${id}`),
-  approveVerification: (id) => api.post(`/admin/verifications/${id}/approve`),
-  rejectVerification: (id, data) => api.post(`/admin/verifications/${id}/reject`, data),
+  getVerificationQueue: (params) => api.get('/admin/verification-queue', { params }),
+  getVerification: (id) => api.get(`/admin/verification/${id}`),
+  approveVerification: (id) => api.put(`/admin/verification/${id}/approve`),
+  rejectVerification: (id, data) => api.put(`/admin/verification/${id}/reject`, data),
   getLawyerDocuments: (userId) => api.get(`/admin/verification/${userId}/documents`),
   approveLawyer: (userId) => api.put(`/admin/verification/${userId}/approve`),
   rejectLawyer: (userId, reason) => api.put(`/admin/verification/${userId}/reject`, { reason }),
   
   getAllDocuments: (params = { page: 0, size: 10 }) => api.get('/admin/documents', { params }),
   getAuditLogs: (params = { page: 0, size: 20 }) => api.get('/admin/audit-logs', { params }),
-  getSuspiciousActivities: (params = { page: 0, size: 10 }) => api.get('/admin/suspicious', { params }),
-  resolveSuspiciousActivity: (id) => api.put(`/admin/suspicious/${id}/resolve`),
+  getSuspiciousActivities: (params = { page: 0, size: 10 }) => api.get('/admin/suspicious-activities', { params }),
+  resolveSuspiciousActivity: (id) => api.put(`/admin/suspicious-activities/${id}/resolve`),
   
-  getIpBlacklist: (params = { page: 0, size: 10 }) => api.get('/admin/blacklist', { params }),
-  addBlacklistIp: (data) => api.post('/admin/blacklist', data),
-  removeBlacklistIp: (id) => api.delete(`/admin/blacklist/${id}`),
-  blockIp: (data) => api.post('/admin/blacklist', data),
-  unblockIp: (id) => api.delete(`/admin/blacklist/${id}`),
+  getIpBlacklist: (params = { page: 0, size: 10 }) => api.get('/admin/ip-blacklist', { params }),
+  addBlacklistIp: (data) => api.post('/admin/ip-blacklist', data),
+  removeBlacklistIp: (id) => api.delete(`/admin/ip-blacklist/${id}`),
+  blockIp: (data) => api.post('/admin/ip-blacklist', data),
+  unblockIp: (id) => api.delete(`/admin/ip-blacklist/${id}`),
   
   getAppeals: (params = { page: 0, size: 10 }) => api.get('/admin/appeals', { params }),
   getAllAppeals: (params = { page: 0, size: 10 }) => api.get('/admin/appeals', { params }),
   getAppeal: (id) => api.get(`/admin/appeals/${id}`),
-  approveAppeal: (id) => api.post(`/admin/appeals/${id}/approve`),
-  rejectAppeal: (id, data) => api.post(`/admin/appeals/${id}/reject`, data),
+  approveAppeal: (id) => api.put(`/admin/appeals/${id}/approve`),
+  rejectAppeal: (id, data) => api.put(`/admin/appeals/${id}/reject`, data),
   
-  getStats: () => api.get('/admin/dashboard/stats'),
-  getDashboardStats: () => api.get('/admin/dashboard/stats'),
+  getStats: () => api.get('/admin/stats'),
+  getDashboardStats: () => api.get('/admin/stats'),
 };
 
 export default adminService;

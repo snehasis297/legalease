@@ -89,6 +89,31 @@ public class LawyerController {
         return ResponseEntity.ok(ApiResponse.ok("Assigned documents retrieved", docs));
     }
 
+    @GetMapping({"/reviews/pending", "/contracts/pending"})
+    public ResponseEntity<ApiResponse<Page<DocumentResponse>>> getPendingReviews(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User lawyer = getAuthenticatedUser(userDetails);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "uploadTime"));
+        Page<DocumentResponse> docs = lawyerService.getPendingReviews(lawyer, pageable);
+        return ResponseEntity.ok(ApiResponse.ok("Pending client contract reviews retrieved", docs));
+    }
+
+    @PostMapping({"/reviews/{id}", "/documents/{id}/review"})
+    public ResponseEntity<ApiResponse<DocumentResponse>> submitReview(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User lawyer = getAuthenticatedUser(userDetails);
+        String riskLevel = body.getOrDefault("riskLevel", body.getOrDefault("lawyerRiskLevel", "LOW"));
+        String notes = body.getOrDefault("notes", body.getOrDefault("lawyerNotes", ""));
+        String recommendations = body.getOrDefault("recommendations", body.getOrDefault("lawyerRecommendations", ""));
+
+        DocumentResponse doc = lawyerService.submitReview(id, riskLevel, notes, recommendations, lawyer);
+        return ResponseEntity.ok(ApiResponse.ok("Counsel legal review certified and dispatched to client.", doc));
+    }
+
     @PutMapping("/documents/{id}/notes")
     public ResponseEntity<ApiResponse<DocumentResponse>> updateNotes(
             @PathVariable("id") Long id,

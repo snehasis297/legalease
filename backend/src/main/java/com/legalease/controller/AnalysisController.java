@@ -21,13 +21,13 @@ public class AnalysisController {
         this.analysisService = analysisService;
     }
 
-    @PostMapping("/analyze/{documentId}")
+    @PostMapping({"/analyze/{documentId}", "/{documentId}/trigger"})
     public ResponseEntity<ApiResponse<Void>> triggerAnalysis(@PathVariable("documentId") Long documentId) {
         analysisService.analyzeDocumentAsync(documentId);
         return ResponseEntity.ok(ApiResponse.ok("Analysis queued for processing"));
     }
 
-    @GetMapping("/{documentId}")
+    @GetMapping({"/{documentId}", "/document/{documentId}"})
     public ResponseEntity<ApiResponse<AnalysisResponse>> getAnalysis(@PathVariable("documentId") Long documentId) {
         AnalysisResponse analysis = analysisService.getDocumentAnalysis(documentId);
         return ResponseEntity.ok(ApiResponse.ok("Analysis retrieved successfully", analysis));

@@ -31,8 +31,8 @@ export const Suspended = () => {
         </p>
 
         <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-          <a href="mailto:security@legalease.com" className="text-accent underline font-mono">
-            security@legalease.com
+          <a href="mailto:legalease.systemsupport@gmail.com" className="text-accent underline font-mono">
+            legalease.systemsupport@gmail.com
           </a>
           <button onClick={logout} className="text-danger hover:underline font-medium">
             Sign Out

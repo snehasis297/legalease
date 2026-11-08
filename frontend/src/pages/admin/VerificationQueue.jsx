@@ -10,8 +10,7 @@ import {
   RefreshCw,
   Clock
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import adminService from '../../services/adminService';
 import { formatDate } from '../../utils/formatters';
@@ -27,9 +26,11 @@ export default function VerificationQueue() {
     try {
       setLoading(true);
       const res = await adminService.getVerificationQueue({ status: filterStatus });
-      setQueue(res.data?.content || res.data || []);
+      const queueList = res.data?.data?.content || res.data?.content || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setQueue(Array.isArray(queueList) ? queueList : []);
     } catch (err) {
       console.error('Failed to load verification queue:', err);
+      setQueue([]);
     } finally {
       setLoading(false);
     }
@@ -39,18 +40,15 @@ export default function VerificationQueue() {
     fetchQueue();
   }, [filterStatus]);
 
+  const queueItems = Array.isArray(queue) ? queue : [];
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="Lawyer Verification Queue">
+      <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Bar Council Verification Queue</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">Bar Council Verification Queue</h1>
+              <p className="text-xs text-slate-300 mt-1">
                 Validate practicing advocates, inspect license certificates, and grant counsel permissions.
               </p>
             </div>
@@ -59,17 +57,16 @@ export default function VerificationQueue() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                className="px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
               >
                 <option value="PENDING">Pending Review</option>
-                <option value="APPROVED">Approved</option>
-                <option value="REJECTED">Rejected</option>
-                <option value="ALL">All Applications</option>
+                <option value="APPROVED">Approved Licenses</option>
+                <option value="REJECTED">Rejected Applications</option>
               </select>
 
               <button
                 onClick={fetchQueue}
-                className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
+                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold transition shadow-sm"
                 title="Refresh Queue"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -77,35 +74,34 @@ export default function VerificationQueue() {
             </div>
           </div>
 
-          {/* Queue Table */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+          <div className="rounded-2xl border border-slate-700/60 bg-slate-900/90 overflow-hidden shadow-md">
             {loading ? (
               <div className="py-20 flex justify-center">
-                <LoadingSpinner />
+                <LoadingSpinner text="Fetching lawyer applications..." />
               </div>
-            ) : queue.length === 0 ? (
-              <div className="text-center py-16 px-4">
-                <FileCheck className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                <h3 className="text-sm font-semibold text-white">No applications in this queue</h3>
-                <p className="text-xs text-slate-400 mt-1">
+            ) : queueItems.length === 0 ? (
+              <div className="py-20 text-center">
+                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto mb-3 opacity-60" />
+                <h3 className="text-sm font-bold text-white">Verification Queue Clear</h3>
+                <p className="text-xs text-slate-300 mt-1">
                   All lawyer Bar Council applications have been reviewed.
                 </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400">
+                  <thead className="bg-slate-950 border-b border-slate-800 text-slate-300 font-bold">
                     <tr>
-                      <th className="py-3.5 px-4 font-medium">Advocate Name</th>
-                      <th className="py-3.5 px-4 font-medium">Bar License ID</th>
-                      <th className="py-3.5 px-4 font-medium">Jurisdiction</th>
-                      <th className="py-3.5 px-4 font-medium">Status</th>
-                      <th className="py-3.5 px-4 font-medium">Submitted</th>
-                      <th className="py-3.5 px-4 font-medium text-right">Action</th>
+                      <th className="py-3.5 px-4 font-semibold">Advocate Name</th>
+                      <th className="py-3.5 px-4 font-semibold">Bar License ID</th>
+                      <th className="py-3.5 px-4 font-semibold">Jurisdiction</th>
+                      <th className="py-3.5 px-4 font-semibold">Status</th>
+                      <th className="py-3.5 px-4 font-semibold">Submitted</th>
+                      <th className="py-3.5 px-4 font-semibold text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                    {queue.map((item) => (
+                    {queueItems.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-800/30 transition">
                         <td className="py-3.5 px-4 font-medium text-white">
                           <div>
@@ -153,8 +149,7 @@ export default function VerificationQueue() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

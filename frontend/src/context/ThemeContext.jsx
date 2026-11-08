@@ -107,11 +107,16 @@ export const ThemeProvider = ({ children }) => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  const handleSelectSection = (sectionId) => {
+  const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
     const elem = document.getElementById(sectionId);
     if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const navOffset = 85;
+      const elementPosition = elem.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: Math.max(0, elementPosition - navOffset),
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -122,7 +127,8 @@ export const ThemeProvider = ({ children }) => {
         isDark: theme === 'dark',
         toggleTheme,
         activeSection,
-        setActiveSection: handleSelectSection,
+        setActiveSection,
+        scrollToSection,
         sectionThemeColors: SECTION_THEMES,
       }}
     >

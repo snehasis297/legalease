@@ -40,10 +40,10 @@ export const HowItWorks = () => {
       id="how-it-works" 
       ref={ref} 
       onClick={() => setActiveSection('how-it-works')}
-      className={`py-24 relative transition-all duration-500 cursor-pointer ${
+      className={`py-24 scroll-mt-24 relative transition-all duration-300 ${
         isActive 
-          ? 'bg-gradient-to-b from-indigo-950/40 via-[#07070D] to-[#07070D] ring-2 ring-indigo-500/40 shadow-[0_0_80px_rgba(99,102,241,0.15)]' 
-          : 'bg-[#07070D]'
+          ? 'bg-indigo-500/10 backdrop-blur-md ring-2 ring-indigo-500/40 shadow-[0_0_80px_rgba(99,102,241,0.15)]' 
+          : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

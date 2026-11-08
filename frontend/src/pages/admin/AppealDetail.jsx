@@ -10,8 +10,7 @@ import {
   Download, 
   ShieldCheck 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import AdminSidebar from '../../components/layout/AdminSidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Modal from '../../components/common/Modal';
 import appealService from '../../services/appealService';
@@ -77,13 +76,8 @@ export default function AppealDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="admin" title="Appeal Detail">
+      <div className="space-y-6">
           <button
             onClick={() => navigate('/admin/appeals')}
             className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition"
@@ -210,8 +204,7 @@ export default function AppealDetail() {
               </div>
             </div>
           ) : null}
-        </main>
-      </div>
+        </div>
 
       {/* Reject Modal */}
       {showRejectModal && (
@@ -255,6 +248,6 @@ export default function AppealDetail() {
           </div>
         </Modal>
       )}
-    </div>
+    </DashboardLayout>
   );
 }

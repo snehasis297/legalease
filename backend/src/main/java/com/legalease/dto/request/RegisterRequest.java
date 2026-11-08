@@ -14,8 +14,6 @@ public class RegisterRequest {
     @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
     private String role; // CLIENT or LAWYER (default CLIENT)

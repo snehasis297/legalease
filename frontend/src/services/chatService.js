@@ -9,7 +9,17 @@ export const chatService = {
   deleteSession: (id) => api.delete(`/chat/session/${id}`),
 
   // SSE Streaming helper via fetch
-  streamMessage: async (documentId, message, onChunk, onError, onDone) => {
+  streamMessage: async (documentId, message, onChunk, cb4, cb5) => {
+    let onError = cb4;
+    let onDone = cb5;
+    // Handle inverted signatures gracefully
+    if (typeof cb4 === 'function' && typeof cb5 === 'function') {
+      // If cb4 has length 0 and cb5 has length 1+, caller likely passed (onDone, onError)
+      if (cb4.length === 0 && cb5.length >= 1) {
+        onDone = cb4;
+        onError = cb5;
+      }
+    }
     try {
       const token = tokenHelper.getAccessToken();
       const response = await fetch(`/api/chat/${documentId}/stream`, {
@@ -39,8 +49,9 @@ export const chatService = {
 
         for (const line of lines) {
           if (line.startsWith('data:')) {
-            const data = line.slice(5).trim();
-            if (data === '[DONE]') {
+            let data = line.slice(5);
+            if (data.startsWith(' ')) data = data.slice(1);
+            if (data.trim() === '[DONE]') {
               if (onDone) onDone();
               return;
             } else if (data) {

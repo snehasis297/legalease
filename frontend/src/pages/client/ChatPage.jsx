@@ -11,8 +11,7 @@ import {
   AlertCircle,
   ShieldCheck
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import documentService from '../../services/documentService';
 import chatService from '../../services/chatService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -47,20 +46,26 @@ export default function ChatPage() {
       try {
         setLoading(true);
         const docRes = await documentService.getDocument(id);
-        setDocument(docRes.data);
+        const docData = docRes.data?.data || docRes.data;
+        setDocument(docData);
 
         // Load chat history if available
         const historyRes = await chatService.getChatHistory(id);
-        const history = historyRes.data?.messages || historyRes.data || [];
-        if (history.length > 0) {
-          setMessages(history);
+        const history = historyRes.data?.data || historyRes.data?.messages || historyRes.data || [];
+        if (Array.isArray(history) && history.length > 0) {
+          setMessages(history.map(m => ({
+            id: m.id ? String(m.id) : Date.now().toString(),
+            sender: (m.role || m.sender || '').toUpperCase() === 'USER' ? 'USER' : 'AI',
+            content: m.content || '',
+            timestamp: m.timestamp || new Date().toISOString(),
+          })));
         } else {
           // Welcome message
           setMessages([
             {
               id: 'initial',
               sender: 'AI',
-              content: `Hello! I have reviewed **${docRes.data?.title || 'your contract'}**. Ask me any question regarding specific liabilities, indemnity terms, dispute resolution, or compliance obligations.`,
+              content: `Hello! I have reviewed **${docData?.title || docData?.originalFilename || 'your contract'}**. Ask me any question regarding specific liabilities, indemnity terms, dispute resolution, or compliance obligations.`,
               timestamp: new Date().toISOString(),
             },
           ]);
@@ -150,44 +155,38 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 flex flex-col overflow-hidden p-4 lg:p-6">
-          <div className="max-w-5xl w-full mx-auto flex flex-col flex-1 bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+    <DashboardLayout portalType="client" title="Document Chat">
+      <div className="max-w-5xl w-full mx-auto flex flex-col h-[calc(100vh-10rem)] card overflow-hidden p-0 border border-slate-200 shadow-sm">
             {/* Chat Header */}
-            <div className="p-4 border-b border-slate-800 bg-slate-950/40 flex items-center justify-between">
+            <div className="p-4 border-b border-slate-200 bg-white/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigate(`/client/analysis/${id}`)}
-                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
+                  className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 shadow-sm transition"
                   title="Back to Analysis"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  <div className="p-2 rounded-xl bg-indigo-600/10 text-indigo-600 border border-indigo-500/20">
                     <Bot className="w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+                    <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                       Legal AI Assistant
-                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 border border-emerald-500/25">
                         Dual-Mode Active
                       </span>
                     </h2>
-                    <p className="text-[11px] text-slate-400 truncate max-w-sm">
-                      {document?.title || document?.originalFileName || 'Contract Inquiry'}
+                    <p className="text-[11px] text-slate-500 truncate max-w-sm">
+                      {document?.title || document?.originalFileName || document?.originalFilename || 'Contract Inquiry'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
                 <span className="hidden sm:inline">Zero Retention Session</span>
               </div>
             </div>
@@ -279,8 +278,6 @@ export default function ChatPage() {
               </button>
             </form>
           </div>
-        </main>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }

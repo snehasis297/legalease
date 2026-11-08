@@ -11,7 +11,7 @@ import CtaSection from '../components/landing/CtaSection';
 
 export const Landing = () => {
   return (
-    <div className="min-h-screen bg-background text-textPrimary flex flex-col justify-between">
+    <div className="min-h-screen bg-transparent flex flex-col justify-between">
       <Navbar />
       <main>
         <HeroSection />

@@ -60,13 +60,24 @@ public class ChatService {
         Document doc = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + documentId));
 
-        if (!doc.getUser().getId().equals(user.getId()) && user.getRole() != User.Role.ADMIN) {
+        if (!doc.getUser().getId().equals(user.getId()) && user.getRole() != User.Role.ADMIN && user.getRole() != User.Role.LAWYER) {
             throw new UnauthorizedException("You do not have access to this document");
         }
 
         String title = "Discussion on " + doc.getOriginalFilename();
         ChatSession session = new ChatSession(user, doc, title);
         return chatSessionRepository.save(session);
+    }
+
+    @Transactional
+    public ChatSession getOrCreateSessionForDocument(User user, Long documentId) {
+        List<ChatSession> existing = chatSessionRepository.findByDocumentIdOrderByLastMessageAtDesc(documentId);
+        for (ChatSession s : existing) {
+            if (s.getUser().getId().equals(user.getId())) {
+                return s;
+            }
+        }
+        return createSession(user, documentId);
     }
 
     public List<ChatSession> getUserSessions(Long userId) {

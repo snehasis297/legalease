@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export const AdminLogin = () => {
-  const [email, setEmail] = useState('admin@legalease.com');
+  const [email, setEmail] = useState('legalease.systemsupport@gmail.com');
   const [password, setPassword] = useState('Admin@123456');
   const [totpCode, setTotpCode] = useState('');
   const [requires2FA, setRequires2FA] = useState(false);
@@ -36,7 +36,7 @@ export const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#07070C] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Red ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-danger/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -45,18 +45,18 @@ export const AdminLogin = () => {
           <div className="w-12 h-12 rounded-xl bg-danger/20 border border-danger flex items-center justify-center shadow-glow-danger">
             <ShieldAlert className="w-6 h-6 text-danger" />
           </div>
-          <span className="text-2xl font-black text-white tracking-tight">LegalEase Admin</span>
+          <span className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">LegalEase Admin</span>
         </Link>
         <h2 className="text-center text-xl font-mono uppercase tracking-widest text-danger">
           [ Restricted Administrative Gateway ]
         </h2>
-        <p className="mt-1 text-center text-xs text-textSecondary font-mono">
+        <p className="mt-1 text-center text-xs text-slate-600 dark:text-textSecondary font-mono">
           Whitelisted IP &bull; TOTP Hardware Verification
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="glass-card py-8 px-6 shadow-2xl rounded-2xl border border-danger/30 sm:px-10 bg-[#0E0E18]">
+        <div className="card py-8 px-6 shadow-2xl border border-danger/30 sm:px-10">
           {errorMessage && (
             <div className="mb-6 p-4 rounded-xl bg-danger/10 border border-danger/40 flex items-start space-x-3 text-xs text-danger">
               <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />

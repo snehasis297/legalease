@@ -34,16 +34,16 @@ export const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-transparent flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <h2 className="text-2xl font-bold text-white tracking-tight">Set New Password</h2>
-        <p className="mt-2 text-xs text-textSecondary">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Set New Password</h2>
+        <p className="mt-2 text-xs text-slate-600 dark:text-textSecondary">
           Enter the 6-digit recovery code and choose your new password.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="glass-card py-8 px-6 rounded-2xl border border-white/10 sm:px-10 space-y-6">
+        <div className="card py-8 px-6 sm:px-10 space-y-6">
           {errorMessage && (
             <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 flex items-start space-x-3 text-xs text-danger">
               <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />

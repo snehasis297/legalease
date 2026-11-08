@@ -3,6 +3,7 @@ package com.legalease.dto.response;
 public class AuthResponse {
 
     private String accessToken;
+    private String refreshToken;
     private String tokenType = "Bearer";
     private long expiresIn;
     private Long userId;
@@ -17,7 +18,12 @@ public class AuthResponse {
     }
 
     public AuthResponse(String accessToken, long expiresIn, Long userId, String email, String fullName, String role, String accountStatus, boolean requires2FA, String maskedPhone) {
+        this(accessToken, null, expiresIn, userId, email, fullName, role, accountStatus, requires2FA, maskedPhone);
+    }
+
+    public AuthResponse(String accessToken, String refreshToken, long expiresIn, Long userId, String email, String fullName, String role, String accountStatus, boolean requires2FA, String maskedPhone) {
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
         this.userId = userId;
         this.email = email;
@@ -106,5 +112,13 @@ public class AuthResponse {
 
     public void setMaskedPhone(String maskedPhone) {
         this.maskedPhone = maskedPhone;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }

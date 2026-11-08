@@ -16,6 +16,14 @@ public class AnalysisResponse {
     private String aiModelUsed;
     private Long analysisDurationMs;
     private List<ClauseResponse> clauses;
+    private String assignedLawyerName;
+    private String lawyerRiskLevel;
+    private String lawyerNotes;
+    private String lawyerRecommendations;
+    private java.time.LocalDateTime lawyerReviewedAt;
+    private String reviewStatus;
+    private String finalRiskStatus;
+    private String finalRiskLabel;
 
     public AnalysisResponse() {
     }
@@ -114,5 +122,69 @@ public class AnalysisResponse {
 
     public void setClauses(List<ClauseResponse> clauses) {
         this.clauses = clauses;
+    }
+
+    public String getAssignedLawyerName() {
+        return assignedLawyerName;
+    }
+
+    public void setAssignedLawyerName(String assignedLawyerName) {
+        this.assignedLawyerName = assignedLawyerName;
+    }
+
+    public String getLawyerRiskLevel() {
+        return lawyerRiskLevel;
+    }
+
+    public void setLawyerRiskLevel(String lawyerRiskLevel) {
+        this.lawyerRiskLevel = lawyerRiskLevel;
+    }
+
+    public String getLawyerNotes() {
+        return lawyerNotes;
+    }
+
+    public void setLawyerNotes(String lawyerNotes) {
+        this.lawyerNotes = lawyerNotes;
+    }
+
+    public String getLawyerRecommendations() {
+        return lawyerRecommendations;
+    }
+
+    public void setLawyerRecommendations(String lawyerRecommendations) {
+        this.lawyerRecommendations = lawyerRecommendations;
+    }
+
+    public java.time.LocalDateTime getLawyerReviewedAt() {
+        return lawyerReviewedAt;
+    }
+
+    public void setLawyerReviewedAt(java.time.LocalDateTime lawyerReviewedAt) {
+        this.lawyerReviewedAt = lawyerReviewedAt;
+    }
+
+    public String getReviewStatus() {
+        return reviewStatus;
+    }
+
+    public void setReviewStatus(String reviewStatus) {
+        this.reviewStatus = reviewStatus;
+    }
+
+    public String getFinalRiskStatus() {
+        return finalRiskStatus;
+    }
+
+    public void setFinalRiskStatus(String finalRiskStatus) {
+        this.finalRiskStatus = finalRiskStatus;
+    }
+
+    public String getFinalRiskLabel() {
+        return finalRiskLabel;
+    }
+
+    public void setFinalRiskLabel(String finalRiskLabel) {
+        this.finalRiskLabel = finalRiskLabel;
     }
 }

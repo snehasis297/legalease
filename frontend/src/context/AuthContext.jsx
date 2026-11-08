@@ -7,28 +7,48 @@ import toast from 'react-hot-toast';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('legalease_user') || sessionStorage.getItem('legalease_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(false);
 
-  // Attempt token refresh on initial load
+  // Attempt token refresh on initial load if needed
   useEffect(() => {
     const initAuth = async () => {
-      try {
-        const res = await authService.refresh();
-        if (res.data?.accessToken) {
-          tokenHelper.setAccessToken(res.data.accessToken);
-          setUser({
-            id: res.data.userId,
-            email: res.data.email,
-            fullName: res.data.fullName,
-            role: res.data.role,
-            accountStatus: res.data.accountStatus,
-          });
+      const hasToken = tokenHelper.hasAccessToken();
+      const refreshToken = tokenHelper.getRefreshToken();
+      
+      if (!hasToken && refreshToken) {
+        try {
+          const res = await authService.refresh();
+          const payload = res.data?.data || res.data;
+          if (payload?.accessToken) {
+            tokenHelper.setAccessToken(payload.accessToken);
+            if (payload?.refreshToken) {
+              tokenHelper.setRefreshToken(payload.refreshToken);
+            }
+            const userData = {
+              id: payload.userId,
+              email: payload.email,
+              fullName: payload.fullName,
+              role: payload.role,
+              accountStatus: payload.accountStatus,
+            };
+            setUser(userData);
+            localStorage.setItem('legalease_user', JSON.stringify(userData));
+            sessionStorage.setItem('legalease_user', JSON.stringify(userData));
+          }
+        } catch (err) {
+          tokenHelper.clearAccessToken();
+          setUser(null);
+          localStorage.removeItem('legalease_user');
+          sessionStorage.removeItem('legalease_user');
         }
-      } catch (err) {
-        tokenHelper.clearAccessToken();
-      } finally {
-        setLoading(false);
       }
     };
     initAuth();
@@ -36,22 +56,38 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await authService.login({ email, password });
-    const { accessToken, userId, fullName, role, accountStatus } = res.data;
+    const payload = res.data?.data || res.data;
+    const { accessToken, refreshToken, userId, fullName, role, accountStatus } = payload;
     tokenHelper.setAccessToken(accessToken);
+    if (refreshToken) {
+      tokenHelper.setRefreshToken(refreshToken);
+    }
     const userData = { id: userId, email, fullName, role, accountStatus };
     setUser(userData);
+    try {
+      localStorage.setItem('legalease_user', JSON.stringify(userData));
+      sessionStorage.setItem('legalease_user', JSON.stringify(userData));
+    } catch (e) {}
     return userData;
   };
 
   const adminLogin = async (email, password, totpCode) => {
     const res = await authService.adminLogin({ email, password, totpCode });
-    if (res.data.requires2FA) {
+    const payload = res.data?.data || res.data;
+    if (payload.requires2FA) {
       return { requires2FA: true };
     }
-    const { accessToken, userId, fullName, role, accountStatus } = res.data;
+    const { accessToken, refreshToken, userId, fullName, role, accountStatus } = payload;
     tokenHelper.setAccessToken(accessToken);
+    if (refreshToken) {
+      tokenHelper.setRefreshToken(refreshToken);
+    }
     const userData = { id: userId, email, fullName, role, accountStatus };
     setUser(userData);
+    try {
+      localStorage.setItem('legalease_user', JSON.stringify(userData));
+      sessionStorage.setItem('legalease_user', JSON.stringify(userData));
+    } catch (e) {}
     return userData;
   };
 
@@ -62,12 +98,41 @@ export const AuthProvider = ({ children }) => {
     } finally {
       tokenHelper.clearAccessToken();
       setUser(null);
+      try {
+        localStorage.removeItem('legalease_user');
+        sessionStorage.removeItem('legalease_user');
+      } catch (e) {}
       window.location.href = '/login';
     }
   };
 
+  const loginWithOtp = async (email, otp) => {
+    const res = await authService.verifyLoginOtp({ email, otp });
+    const payload = res.data?.data || res.data;
+    const { accessToken, refreshToken, userId, fullName, role, accountStatus } = payload;
+    tokenHelper.setAccessToken(accessToken);
+    if (refreshToken) {
+      tokenHelper.setRefreshToken(refreshToken);
+    }
+    const userData = { id: userId, email, fullName, role, accountStatus };
+    setUser(userData);
+    try {
+      localStorage.setItem('legalease_user', JSON.stringify(userData));
+      sessionStorage.setItem('legalease_user', JSON.stringify(userData));
+    } catch (e) {}
+    return userData;
+  };
+
   const updateAccountStatus = (newStatus) => {
-    setUser((prev) => (prev ? { ...prev, accountStatus: newStatus } : null));
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, accountStatus: newStatus };
+      try {
+        localStorage.setItem('legalease_user', JSON.stringify(updated));
+        sessionStorage.setItem('legalease_user', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
   return (
@@ -77,6 +142,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: Boolean(user && tokenHelper.hasAccessToken()),
         login,
+        loginWithOtp,
         adminLogin,
         logout,
         updateAccountStatus,

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true, value = {"hibernateLazyInitializer", "handler"})
 public class User {
 
     public enum Role {
@@ -34,7 +35,8 @@ public class User {
         PAN,
         VOTER_ID,
         PASSPORT,
-        DRIVING_LICENSE
+        DRIVING_LICENSE,
+        AADHAAR
     }
 
     @Id
@@ -47,6 +49,7 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -98,6 +101,18 @@ public class User {
 
     @Column(name = "failed_login_count")
     private Integer failedLoginCount = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
+    @Column(name = "is_face_verified")
+    private Boolean isFaceVerified = false;
+
+    @Column(name = "face_image_path", length = 500)
+    private String faceImagePath;
+
+    @Column(name = "face_match_score")
+    private Integer faceMatchScore;
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
@@ -382,5 +397,37 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getLockedUntil() {
+        return lockedUntil;
+    }
+
+    public void setLockedUntil(LocalDateTime lockedUntil) {
+        this.lockedUntil = lockedUntil;
+    }
+
+    public Boolean getIsFaceVerified() {
+        return isFaceVerified;
+    }
+
+    public void setIsFaceVerified(Boolean faceVerified) {
+        isFaceVerified = faceVerified;
+    }
+
+    public String getFaceImagePath() {
+        return faceImagePath;
+    }
+
+    public void setFaceImagePath(String faceImagePath) {
+        this.faceImagePath = faceImagePath;
+    }
+
+    public Integer getFaceMatchScore() {
+        return faceMatchScore;
+    }
+
+    public void setFaceMatchScore(Integer faceMatchScore) {
+        this.faceMatchScore = faceMatchScore;
     }
 }

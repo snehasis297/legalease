@@ -65,7 +65,7 @@ public class AdminController {
                 adminService.updateUserStatus(id, body.get("status"), body.get("reason"))));
     }
 
-    @GetMapping("/verification-queue")
+    @GetMapping({"/verification-queue", "/verifications"})
     public ResponseEntity<ApiResponse<Page<LawyerProfile>>> getVerificationQueue(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
@@ -73,12 +73,17 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Queue retrieved", adminService.getVerificationQueue(pageable)));
     }
 
-    @GetMapping("/verification/{userId}/documents")
+    @GetMapping({"/verification/{id}", "/verifications/{id}"})
+    public ResponseEntity<ApiResponse<LawyerProfile>> getVerificationById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(ApiResponse.ok("Verification details retrieved", adminService.getLawyerProfileById(id)));
+    }
+
+    @GetMapping({"/verification/{userId}/documents", "/verifications/{userId}/documents"})
     public ResponseEntity<ApiResponse<List<VerificationDocument>>> getLawyerDocuments(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(ApiResponse.ok("Lawyer verification documents retrieved", adminService.getLawyerDocuments(userId)));
     }
 
-    @PutMapping("/verification/{userId}/approve")
+    @PutMapping({"/verification/{userId}/approve", "/verifications/{userId}/approve"})
     public ResponseEntity<ApiResponse<Void>> approveLawyer(@PathVariable("userId") Long userId,
                                                            @AuthenticationPrincipal UserDetails userDetails) {
         User admin = getAuthenticatedAdmin(userDetails);
@@ -86,7 +91,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Lawyer successfully approved. Account is now ACTIVE."));
     }
 
-    @PutMapping("/verification/{userId}/reject")
+    @PutMapping({"/verification/{userId}/reject", "/verifications/{userId}/reject"})
     public ResponseEntity<ApiResponse<Void>> rejectLawyer(@PathVariable("userId") Long userId,
                                                           @RequestBody Map<String, String> body,
                                                           @AuthenticationPrincipal UserDetails userDetails) {
@@ -111,7 +116,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Audit logs retrieved", adminService.getAuditLogs(pageable)));
     }
 
-    @GetMapping("/suspicious-activities")
+    @GetMapping({"/suspicious-activities", "/suspicious"})
     public ResponseEntity<ApiResponse<Page<SuspiciousActivityResponse>>> getSuspiciousActivities(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
@@ -119,13 +124,13 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Threat events retrieved", adminService.getSuspiciousActivities(pageable)));
     }
 
-    @PutMapping("/suspicious-activities/{id}/resolve")
+    @PutMapping({"/suspicious-activities/{id}/resolve", "/suspicious/{id}/resolve"})
     public ResponseEntity<ApiResponse<Void>> resolveSuspiciousActivity(@PathVariable("id") Long id) {
         adminService.resolveSuspiciousActivity(id);
         return ResponseEntity.ok(ApiResponse.ok("Suspicious activity marked as resolved."));
     }
 
-    @GetMapping("/ip-blacklist")
+    @GetMapping({"/ip-blacklist", "/blacklist"})
     public ResponseEntity<ApiResponse<Page<IpBlacklist>>> getIpBlacklist(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
@@ -133,7 +138,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Blacklist retrieved", adminService.getIpBlacklist(pageable)));
     }
 
-    @PostMapping("/ip-blacklist")
+    @PostMapping({"/ip-blacklist", "/blacklist"})
     public ResponseEntity<ApiResponse<IpBlacklist>> blockIp(@RequestBody Map<String, Object> body,
                                                             @AuthenticationPrincipal UserDetails userDetails) {
         User admin = getAuthenticatedAdmin(userDetails);
@@ -146,7 +151,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("IP blocked successfully", entry));
     }
 
-    @DeleteMapping("/ip-blacklist/{id}")
+    @DeleteMapping({"/ip-blacklist/{id}", "/blacklist/{id}"})
     public ResponseEntity<ApiResponse<Void>> unblockIp(@PathVariable("id") Long id) {
         adminService.unblockIp(id);
         return ResponseEntity.ok(ApiResponse.ok("IP removed from blacklist."));
@@ -182,7 +187,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Appeal rejected."));
     }
 
-    @GetMapping("/stats")
+    @GetMapping({"/stats", "/dashboard/stats"})
     public ResponseEntity<ApiResponse<Map<String, Object>>> getStats() {
         return ResponseEntity.ok(ApiResponse.ok("System stats retrieved", adminService.getSystemStats()));
     }

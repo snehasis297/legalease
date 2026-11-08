@@ -44,11 +44,10 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Administration</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Administration &amp; Support</h4>
             <ul className="space-y-2 text-sm text-textSecondary">
               <li><Link to="/admin/login" className="hover:text-white transition-colors">Admin Gateway (2FA)</Link></li>
-              <li><a href="mailto:security@legalease.com" className="hover:text-white transition-colors">security@legalease.com</a></li>
-              <li><a href="mailto:support@legalease.com" className="hover:text-white transition-colors">support@legalease.com</a></li>
+              <li><a href="mailto:legalease.systemsupport@gmail.com" className="hover:text-white transition-colors">legalease.systemsupport@gmail.com</a></li>
             </ul>
           </div>
         </div>

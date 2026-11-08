@@ -9,8 +9,7 @@ import {
   Save, 
   Building 
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
 
@@ -39,13 +38,8 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6">
+    <DashboardLayout portalType="client" title="Profile">
+      <div className="space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-white">My Profile</h1>
             <p className="text-xs text-slate-400 mt-1">
@@ -178,8 +172,7 @@ export default function Profile() {
               </form>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </DashboardLayout>
   );
 }

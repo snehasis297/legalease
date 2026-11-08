@@ -59,6 +59,28 @@ public class ChatController {
         return ResponseEntity.ok(ApiResponse.ok("History retrieved", history));
     }
 
+    @GetMapping("/{documentId}/history")
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getDocumentChatHistory(@PathVariable("documentId") Long documentId,
+                                                                                         @AuthenticationPrincipal UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
+        ChatSession session = chatService.getOrCreateSessionForDocument(user, documentId);
+        List<ChatMessageResponse> history = chatService.getSessionHistory(session.getId(), user);
+        return ResponseEntity.ok(ApiResponse.ok("History retrieved", history));
+    }
+
+    @PostMapping(value = "/{documentId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamDocumentMessage(@PathVariable("documentId") Long documentId,
+                                            @RequestBody java.util.Map<String, String> payload,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
+        String message = payload.get("message");
+        if (message == null || message.trim().isEmpty()) {
+            throw new IllegalArgumentException("Message cannot be empty");
+        }
+        ChatSession session = chatService.getOrCreateSessionForDocument(user, documentId);
+        return chatService.streamUserMessage(session.getId(), message, user);
+    }
+
     @PostMapping(value = "/message", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter sendMessage(@Valid @RequestBody ChatMessageRequest request,
                                   @AuthenticationPrincipal UserDetails userDetails) {

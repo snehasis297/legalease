@@ -55,10 +55,12 @@ public class AdminService {
         this.documentService = documentService;
     }
 
+    @Transactional(readOnly = true)
     public Page<AdminUserResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(this::mapToAdminUserResponse);
     }
 
+    @Transactional(readOnly = true)
     public AdminUserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
@@ -90,12 +92,24 @@ public class AdminService {
         return mapToAdminUserResponse(user);
     }
 
+    @Transactional(readOnly = true)
     public Page<LawyerProfile> getVerificationQueue(Pageable pageable) {
         return lawyerProfileRepository.findByVerificationStatus(LawyerProfile.VerificationStatus.PENDING, pageable);
     }
 
-    public List<VerificationDocument> getLawyerDocuments(Long lawyerUserId) {
-        return verificationDocumentRepository.findByUserId(lawyerUserId);
+    @Transactional(readOnly = true)
+    public LawyerProfile getLawyerProfileById(Long id) {
+        return lawyerProfileRepository.findById(id)
+                .or(() -> lawyerProfileRepository.findByUserId(id))
+                .orElseThrow(() -> new ResourceNotFoundException("Lawyer profile not found with id: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<VerificationDocument> getLawyerDocuments(Long lawyerUserIdOrProfileId) {
+        Long userId = lawyerProfileRepository.findById(lawyerUserIdOrProfileId)
+                .map(lp -> lp.getUser().getId())
+                .orElse(lawyerUserIdOrProfileId);
+        return verificationDocumentRepository.findByUserId(userId);
     }
 
     @Transactional
@@ -108,14 +122,17 @@ public class AdminService {
         verificationService.rejectLawyer(lawyerUserId, reason, adminUser);
     }
 
+    @Transactional(readOnly = true)
     public Page<DocumentResponse> getAllDocuments(Pageable pageable) {
         return documentRepository.findAll(pageable).map(documentService::mapToResponse);
     }
 
+    @Transactional(readOnly = true)
     public Page<AuditLog> getAuditLogs(Pageable pageable) {
         return auditLogRepository.findAllByOrderByTimestampDesc(pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<SuspiciousActivityResponse> getSuspiciousActivities(Pageable pageable) {
         return suspiciousActivityRepository.findAllByOrderByDetectedAtDesc(pageable).map(sa -> {
             SuspiciousActivityResponse resp = new SuspiciousActivityResponse();
@@ -205,8 +222,8 @@ public class AdminService {
         resp.setFullName(u.getFullName());
         resp.setEmail(u.getEmail());
         resp.setMaskedPhone(IdValidationUtil.maskPhoneNumber(u.getPhoneNumber()));
-        resp.setRole(u.getRole().name());
-        resp.setAccountStatus(u.getAccountStatus().name());
+        resp.setRole(u.getRole() != null ? u.getRole().name() : "CLIENT");
+        resp.setAccountStatus(u.getAccountStatus() != null ? u.getAccountStatus().name() : "ACTIVE");
         resp.setFailedLoginCount(u.getFailedLoginCount());
         resp.setLastLoginAt(u.getLastLoginAt());
         resp.setLastLoginIp(u.getLastLoginIp());

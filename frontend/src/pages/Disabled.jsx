@@ -66,7 +66,7 @@ export const Disabled = () => {
         </div>
 
         <div className="pt-6 border-t border-white/10 text-xs text-textSecondary flex justify-between items-center">
-          <span>Contact: <a href="mailto:security@legalease.com" className="text-accent underline">security@legalease.com</a></span>
+          <span>Contact: <a href="mailto:legalease.systemsupport@gmail.com" className="text-accent underline font-mono">legalease.systemsupport@gmail.com</a></span>
           <button onClick={logout} className="text-danger hover:underline">Sign Out</button>
         </div>
       </div>

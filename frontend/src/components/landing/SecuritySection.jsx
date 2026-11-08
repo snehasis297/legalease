@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Lock, Key, AlertOctagon, Smartphone, Server, Sparkles } from 'lucide-react';
 import HackerTerminal from './HackerTerminal';
+import EnterpriseSecurityControls from '../common/EnterpriseSecurityControls';
 import { useTheme } from '../../context/ThemeContext';
 
 export const SecuritySection = () => {
@@ -45,10 +46,10 @@ export const SecuritySection = () => {
     <section 
       id="security" 
       onClick={() => setActiveSection('security')}
-      className={`py-24 relative transition-all duration-500 cursor-pointer ${
+      className={`py-24 scroll-mt-24 relative transition-all duration-300 ${
         isActive 
-          ? 'bg-gradient-to-b from-rose-950/40 via-[#07070B] to-[#07070B] ring-2 ring-rose-500/40 shadow-[0_0_80px_rgba(244,63,94,0.18)]' 
-          : 'bg-[#07070B]'
+          ? 'bg-rose-500/10 backdrop-blur-md ring-2 ring-rose-500/40 shadow-[0_0_80px_rgba(244,63,94,0.18)]' 
+          : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,6 +96,11 @@ export const SecuritySection = () => {
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Enterprise Architectural & Defensive Controls (The 4 Implemented Controls) */}
+        <div className="mt-16">
+          <EnterpriseSecurityControls />
         </div>
 
         {/* Simulated Hacker Terminal */}
